@@ -33,11 +33,13 @@ def start_service(services, server="simple", port=8080, address='0.0.0.0', webro
                 if os.path.isdir(filename):
                     if filename[-1] != "/":
                         resp("301 Moved", [("Location", path + "/")])
+                        debug("301 Moved", params=filename, module="webserver")
                         return ["<h1>301 Moved</h1>"]
                     filename = os.path.dirname(filename) + "/index.html"
                     
                 if not os.path.isfile(filename):
                     resp("404 Not Found", [("Content-type", "text/html")])
+                    debug("404 File not found", params=filename, module="webserver")
                     return ["<h1>404 Not Found</h1>",]
                 
                 (mime, enc) = mimetypes.guess_type(filename)

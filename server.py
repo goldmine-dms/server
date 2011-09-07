@@ -14,5 +14,5 @@ if __name__ == '__main__':
 
     # Start the RPC service
     goldmine.debug("Starting server", module="rpcserver")
-    start_service({"/service": JSONRPCService(rpc)}, "cherrypy", port=config["port"], webroot=os.getcwd()+"/../client/www")
+    start_service({"/service": JSONRPCService(rpc)}, "cherrypy", port=int(config["port"]), webroot=os.getcwd()+"/../client/www")
 
