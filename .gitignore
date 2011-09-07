@@ -1,0 +1,4 @@
+config.ini
+loadschema.sh
+*~
+*.pyc

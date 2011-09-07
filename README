@@ -1,0 +1,80 @@
+Goldmine is a Data Management System designed for Palaeoclimate timeseries datasets.
+
+Dependencies
+------------
+
+Via package managers:
+
+    $ sudo apt-get install git-core build-essentials 
+    $ sudo apt-get install python-setuptools python-dev python-configobj python-bcrypt python-cherrypy3 python-numpy 
+
+If using PostgreSQL for the RDBMS:
+
+    $ sudo apt-get install python-psycopg2 postgresql-server postgresql-8.4 postgresql-client
+
+Via PYPI:
+ 
+    $ sudo easy_install termcolor storm
+
+In STORM 0.18 release, there is a bug in the UUID handling, apply the following fixes: 
+
+    https://code.launchpad.net/~jkakar/storm/uuid-bug-fixes
+
+
+Installation
+------------
+
+Install the dependencies above
+
+Clone this project into a directory called "server"
+
+    $ git clone git://github.com/goldmine-dms/server.git
+
+Also clone the WWW client into the directory "clients/www"
+
+    $ mkdir client; git clone git://github.com/goldmine-dms/client-www.git client/www
+
+Now create a new database for the server
+
+    $ sudo useradd goldmine       # setup a linux user to own the DB
+    $ sudo su - postgres          # become the postgresql superuser
+
+    postgres$ psql template1      # open a SQL command interface
+
+    template1=# CREATE USER goldmine WITH PASSWORD 'goldmine';
+    template1=# CREATE DATABASE goldmine;
+    template1=# GRANT ALL PRIVILEGES ON DATABASE goldmine to goldmine;
+    template1=# \q
+
+    postgres$ exit                # return to the regular user
+
+Then edit the configuration of config.ini to correspond to the above users and passwords
+
+    cd server
+    cp loadschema.sh.example loadschema.sh
+    cp config.ini.example config.ini
+
+And populate the schema to the database and start the server
+
+    ./loadschema.sh
+    ./server.py
+
+
+License and copyright
+---------------------
+
+goldmine (c) Christian Panton 2011
+
+    This program is free software: you can redistribute it and/or modif
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
