@@ -6,3 +6,5 @@ import goldmine.models.structure as structure
 import goldmine.models.dataset as dataset
 import goldmine.models.metadata as metadata 
 
+from goldmine.models import Model
+

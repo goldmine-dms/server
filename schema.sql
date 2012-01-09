@@ -51,11 +51,12 @@ create table lineage (
 );
 
 
--- Dataset
+-- DATASET
 drop table if exists dataset;
 create table dataset (
     id uuid primary key,
     "type" varchar(255) not null,
+    study_id uuid not null,
     created timestamp not null,
     closed timestamp,
     curation_status int,
@@ -71,7 +72,7 @@ create table metadata (
     id uuid primary key,
     dataset_id uuid not null,               -- dataset uuid
     "type" varchar(255) not null,           -- metadata type
-    "level" int,                            -- top level or dataset type dependent
+    "level" int,                            -- study, dataset top level or a part of the data
     created timestamp not null,             -- time created
     created_by_id uuid                      -- uuid of user that created the dataset
 );
@@ -94,14 +95,16 @@ drop table if exists metadata_link_activity;
 create table metadata_link_activity (
     id uuid primary key,
     metadata_id uuid not null,
-    activity_id uuid not null
+    activity_id uuid not null,
+    description text
 );
 
 drop table if exists metadata_link_study;
 create table metadata_link_study (
     id uuid primary key,
     metadata_id uuid not null,
-    study_id uuid not null
+    study_id uuid not null,
+    description text
 );
 
 drop table if exists metadata_keyvaluestore;
