@@ -5,25 +5,29 @@ import datetime
 
 from storm.locals import *
 from goldmine.models import *
+from goldmine.db import generate_uuid
 
 class Dataset(Model):
 
-    __storm_table__ = "datasets"
-    __export__ = ["id", ("study", "study_id"), "xtype", "markertype", "markerlocation", "params", "created", "closed", "description", ("parents", None), ("children", None)]
+    __storm_table__ = "dataset"
+    __export__ = ["id", ("study", "study_id"), "created", "closed", "description", "curation_status", "curated", ("curated_by", "curated_by_id"), ("parents", None), ("children", None)]
     
     id = UUID(primary=True, default_factory=generate_uuid)
+    type = Unicode()
     study_id = UUID()
-    xtype_id = UUID()
-    markertype = Enum(map={"span": 1, "point": 2}) 
-    markerlocation = Enum(map={"start": 1, "center": 2, "end": 3, "na": 4})
+    
     created = DateTime(default_factory=datetime.datetime.now)
     closed = DateTime()
-    description = Unicode()
     
-    children = ReferenceSet(id, "Lineage.from_id", "Lineage.to_id", "Dataset.id")
-    parents = ReferenceSet(id, "Lineage.to_id", "Lineage.from_id", "Dataset.id")
-
-    params = ReferenceSet(id, "Parameter.dataset_id")
-    study = Reference(study_id, "Study.id")
-    xtype = Reference(xtype_id, "Type.id")
-
+    description = Unicode()
+    curation_status = Enum(map={"none": 1, "proposed": 2, "curated": 3})
+    curated_by_id = UUID()
+    curated = DateTime()
+    
+    children = ReferenceSet(id, "structure.Lineage.from_dataset_id", "structure.Lineage.to_dataset_id", "dataset.Dataset.id")
+    parents = ReferenceSet(id, "structure.Lineage.to_dataset_id", "structure.Lineage.from_dataset_id", "dataset.Dataset.id")
+    study = Reference(study_id, "structure.Study.id")
+    curated_by = Reference(curated_by_id, "auth.User.id")
+    
+    
+    

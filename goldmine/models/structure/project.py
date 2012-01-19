@@ -3,16 +3,15 @@
 
 from storm.locals import *
 from goldmine.models import *
+from goldmine.db import generate_uuid
 
-class Site(Model):
+class Project(Model):
 
-    __storm_table__ = "sites"
-    __export__ = ["id", "name", "longitude", "latitude", "elevation", "description", "cores"]
+    __export__ = ["id", "name", "description", "location", "activities"]
     
     id = UUID(primary=True, default_factory=generate_uuid)
     name = Unicode()
-    longitude = Float()
-    latitude = Float()
-    elevation = Float()
+    location_id = UUID()
     description = Unicode()
-    cores = ReferenceSet(id, "Core.site_id")
+    location = Reference(location_id, "structure.Location.id")
+    activities = ReferenceSet(id, "structure.Activity.project_id")

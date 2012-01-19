@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import goldmine.models.auth as auth
-import goldmine.models.structure as structure
-import goldmine.models.dataset as dataset
-import goldmine.models.metadata as metadata 
+from goldmine.models.model import Model
 
-from goldmine.models import Model
+from goldmine.models import auth
+from goldmine.models import structure
+from goldmine.models import dataset
+from goldmine.models import metadata 
+
 

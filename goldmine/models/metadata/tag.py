@@ -3,13 +3,14 @@
 
 from storm.locals import *
 from goldmine.models import *
+from goldmine.db import generate_uuid
 
-class MetadataParams(Model):
+class Tag(Model):
 
-    __storm_table__ = "metadata_params"
-    __export__ = ["id", "key", "value"]
+    __storm_table__ = "metadata_tag"
+    __export__ = ["id", "tag"]
     
     id = UUID(primary=True, default_factory=generate_uuid)
     metadata_id = UUID()
-    key = Unicode()
-    value = Float()
+    tag = Unicode()
+    

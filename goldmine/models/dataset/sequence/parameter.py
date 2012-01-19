@@ -3,15 +3,20 @@
 
 from storm.locals import *
 from goldmine.models import *
+from goldmine.db import generate_uuid
+
 
 class Parameter(Model):
 
-    __storm_table__ = "parameters"
-    __export__ = ["id", "ytype", ("dataset", "dataset_id")]
+    __storm_table__ = "dataset_sequence_parameter"
+    __export__ = ["id", "type", "uncertainty_value", "uncertainty_type", ("sequence", "sequence_id")]
     
     id = UUID(primary=True, default_factory=generate_uuid)
-    dataset_id = UUID()
-    ytype_id = UUID()
-    dataset = Reference(dataset_id, "Dataset.id")
-    ytype = Reference(ytype_id, "Type.id")
+    sequence_id = UUID()
+    type_id = UUID()
+    uncertainty_value = Float()
+    uncertainty_type = Enum(map={"absolute": 1, "relative": 2})
+    
+    sequence = Reference(sequence_id, "dataset.sequence.Sequence.id")
+    type = Reference(type_id, "dataset.sequence.Type.id")
 

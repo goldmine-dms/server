@@ -13,5 +13,5 @@ class Permission(Model):
     group_id = UUID()
     identifier = Unicode()
     
-    study = Rreference(user_id, "structure.Study.id")
-    group = Rreference(user_id, "auth.Group.id")
+    study = Reference(study_id, "structure.Study.id")
+    group = Reference(group_id, "auth.Group.id")

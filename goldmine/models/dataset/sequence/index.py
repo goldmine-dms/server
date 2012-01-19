@@ -3,15 +3,16 @@
 
 from storm.locals import *
 from goldmine.models import *
+from goldmine.db import generate_uuid
 
-class Measurement(Model):
+class Index(Model):
 
-    __storm_table__ = "measurements"
-    __export__ = ["id", "x", "span"]
+    __storm_table__ = "dataset_sequence_index"
+    __export__ = ["id", "location", "span"]
     
     id = UUID(primary=True, default_factory=generate_uuid)
-    dataset_id = UUID()
-    x = Float()
+    sequence_id = UUID()
+    location = Float()
     span = Float()
-    dataset = Reference(dataset_id, "Dataset.id")
+    sequence = Reference(sequence_id, "dataset.sequence.Sequence.id")
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+from goldmine.models.structure.location import Location
 from goldmine.models.structure.project import Project
 from goldmine.models.structure.activity import Activity
 from goldmine.models.structure.activitystudy import ActivityStudy

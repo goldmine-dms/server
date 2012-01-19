@@ -18,10 +18,11 @@ class Group(Model):
 class GroupMember(Model):
     
     __storm_table__ = "group_member"
+    __storm_primary__ = "user_id", "group_id"
     
     user_id = UUID()
     group_id = UUID()
     
-    user = Rreference(user_id, "auth.User.id")
-    group = Rreference(user_id, "auth.Group.id")
+    user = Reference(user_id, "auth.User.id")
+    group = Reference(user_id, "auth.Group.id")
     

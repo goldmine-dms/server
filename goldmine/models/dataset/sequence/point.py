@@ -3,17 +3,21 @@
 
 from storm.locals import *
 from goldmine.models import *
+from goldmine.db import generate_uuid
 
-class Datapoint(Model):
 
-    __storm_table__ = "datapoints"
-    __export__ = ["id", "y", "quality", ("parameter", "parameter_id"), ("measurement", "measurement_id")]
+class Point(Model):
+
+    __storm_table__ = "dataset_sequence_point"
+    __export__ = ["id", "value", "uncertainty_value", "uncertainty_type", ("parameter", "parameter_id"), ("index", "index_id")]
     
     id = UUID(primary=True, default_factory=generate_uuid)
     parameter_id = UUID()
-    measurement_id = UUID()
-    y = Float()
-    quality = Float()
-    parameter = Reference(parameter_id, "Parameter.id")
-    measurement = Reference(measurement_id, "Measurement.id")   
+    index_id = UUID()
+    value = Float()
+    uncertainty_value = Float()
+    uncertainty_type = Enum(map={"absolute": 1, "relative": 2})
+    
+    parameter = Reference(parameter_id, "dataset.sequence.Parameter.id")
+    index = Reference(index_id, "dataset.sequence.Index.id")   
     

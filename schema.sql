@@ -1,13 +1,19 @@
 -- Structural metadata
 
+drop table if exists "location";
+create table "location" (
+    id uuid primary key,
+    longitude float not null,
+    latitude float not null,
+    radius float default 0 not null,
+    elevation integer
+);
+
 drop table if exists "project";
 create table project (
     id uuid primary key,
     name varchar(255),
-    longitude float,
-    latitude float,
-    radius float,
-    elevation integer,
+    location_id uuid,
     description text
 );
 
@@ -16,11 +22,7 @@ create table "activity" (
     id uuid primary key,
     name varchar(255),
     project_id uuid,
-    activity_type int,
-    longitude float,
-    latitude float,
-    radius float,
-    elevation integer,
+    location_id uuid,
     description text
 );
 
@@ -54,88 +56,54 @@ create table lineage (
 -- DATASET
 drop table if exists dataset;
 create table dataset (
-    id uuid primary key,
+    "id" uuid primary key,
     "type" varchar(255) not null,
-    study_id uuid not null,
-    created timestamp not null,
-    closed timestamp,
-    curation_status int,
-    curated_by_id uuid,
-    curated timestamp,
-    description text
+    "study_id" uuid not null,
+    "created" timestamp not null,
+    "closed" timestamp,
+    "curation_status" int,
+    "curated_by_id" uuid,
+    "curated" timestamp,
+    "description" text
 );
 
 -- METADATA
-
 drop table if exists metadata;
 create table metadata (
-    id uuid primary key,
-    dataset_id uuid not null,               -- dataset uuid
-    "type" varchar(255) not null,           -- metadata type
-    "level" int,                            -- study, dataset top level or a part of the data
-    created timestamp not null,             -- time created
-    created_by_id uuid                      -- uuid of user that created the dataset
+    "id" uuid primary key,
+    "dataset_id" uuid not null,               -- dataset uuid
+    "metadata_type" int,
+    "metadata_handler" int,                   -- handled by the specific data type
+    "level" int,                              -- dataset top level or a part of the data
+    "created" timestamp not null,             -- time created
+    "created_by_id" uuid                      -- uuid of user that created the dataset
 );
 
 drop table if exists metadata_annotation;
 create table metadata_annotation (
-    id uuid primary key,
-    metadata_id uuid not null,
-    annotation text not null
+    "id" uuid primary key,
+    "metadata_id" uuid not null,
+    "annotation" text not null
 );
 
 drop table if exists metadata_tag;
 create table metadata_tag (
-    id uuid primary key,
-    metadata_id uuid not null,
-    tag varchar(255) not null
+    "id" uuid primary key,
+    "metadata_id" uuid not null,
+    "tag" varchar(255) not null
 );
 
-drop table if exists metadata_link_activity;
-create table metadata_link_activity (
-    id uuid primary key,
-    metadata_id uuid not null,
-    activity_id uuid not null,
-    description text
-);
 
-drop table if exists metadata_link_study;
-create table metadata_link_study (
-    id uuid primary key,
-    metadata_id uuid not null,
-    study_id uuid not null,
-    description text
-);
-
-drop table if exists metadata_keyvaluestore;
-create table metadata_keyvaluestore (
-    id uuid primary key,
-    metadata_id uuid not null,
-    name varchar(255) not null
-);
-
-drop table if exists metadata_keyvalue_float;
-create table metadata_keyvalue_float (
-    id uuid primary key,
-    keyvaluestore_id uuid not null,
+drop table if exists metadata_keyvalue;
+create table metadata_keyvalue (
+    "id" uuid primary key,
+    "metadata_id" uuid not null,
     "key" varchar(255),
-    "value" float
-);
-
-drop table if exists metadata_keyvalue_int;
-create table metadata_keyvalue_int (
-    id uuid primary key,
-    keyvaluestore_id uuid not null,
-    "key" varchar(255),
-    "value" float
-);
-
-drop table if exists metadata_keyvalue_string;
-create table metadata_keyvalue_string (
-    id uuid primary key,
-    keyvaluestore_id uuid not null,
-    "key" varchar(255),
-    "value" text
+    "holds" int,
+    "value_float" float,
+    "value_int" int,
+    "value_string" text,
+    unique ("metadata_id", "key")
 );
 
 -- DATA TYPE: FILE
@@ -168,13 +136,16 @@ create table dataset_sequence_type (
 drop table if exists dataset_sequence_parameter;
 create table dataset_sequence_parameter (
     id uuid primary key, 
-    dataset_id uuid not null, 
-    type_id uuid
+    sequence_id uuid not null, 
+    type_id uuid,
+    uncertainty_value float,
+    uncertainty_type float
 );
 
 drop table if exists dataset_sequence_index;
 create table dataset_sequence_index (
     id uuid primary key,
+    sequence_id uuid not null,
     location float not null, 
     span float
 );
@@ -185,7 +156,8 @@ create table dataset_sequence_point (
     parameter_id uuid not null, 
     index_id uuid not null, 
     "value" float not null, 
-    quality float
+    uncertainty_value float,
+    uncertainty_type float
 );
 
 create index dataset_sequence_point_parameter on dataset_sequence_point(parameter_id);
@@ -195,14 +167,14 @@ drop table if exists dataset_sequence_metadata;
 create table dataset_sequence_metadata (
     id uuid primary key,
     metadata_id uuid not null,
-    dataset_id uuid,
+    sequence_id uuid,
     parameter_id uuid,
     index_id uuid,
     point_id uuid
 );
 
 
--- System tables: permissions and ownership
+-- AUTH
 drop table if exists "user";
 create table "user" (
     id uuid primary key, 
@@ -213,12 +185,12 @@ create table "user" (
     userlevel integer not null
 );
 
-drop table if exists token;
-create table token (
-    id varchar(32) primary key not null, 
-    user_id uuid not null, 
+drop table if exists "token";
+create table "token" (
+    "id" varchar(32) primary key not null, 
+    "user_id" uuid not null, 
     "timestamp" integer not null, 
-    validity integer
+    "validity" integer                              -- seconds of validity of this token, if NULL, always valid
 );
 
 drop table if exists "group";
@@ -231,14 +203,15 @@ create table "group" (
 drop table if exists group_member;
 create table group_member (
     user_id integer not null, 
-    group_id integer not null
+    group_id integer not null,
+    primary key(user_id, group_id)
 );
 
 drop table if exists permission;
 create table permission (
     id uuid primary key, 
     study_id uuid, 
-    permission_id uuid, 
+    identifier varchar(255), 
     group_id uuid
 );
 

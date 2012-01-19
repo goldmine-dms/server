@@ -3,17 +3,17 @@
 
 from storm.locals import *
 from goldmine.models import *
+from goldmine.db import generate_uuid
 
 class Study(Model):
 
-    __storm_table__ = "studies"
-    __export__ = ["id", "name", "description", ("cores", None), ("datasets", None), ("owner", "owner_id")]
+    __export__ = ["id", "name", "description", ("activities", None), ("datasets", None), ("owner", "owner_id")]
     
     id = UUID(primary=True, default_factory=generate_uuid)
     name = Unicode()
     description = Unicode()
     owner_id = UUID() 
     
-    cores = ReferenceSet(id, "CoreStudy.study_id", "CoreStudy.core_id", "Core.id")
-    datasets = ReferenceSet(id, "Dataset.study_id")
-    owner = Reference(owner_id, "User.id")
+    activities = ReferenceSet(id, "structure.ActivityStudy.study_id", "structure.ActivityStudy.activity_id", "structure.Activity.id")
+    datasets = ReferenceSet(id, "dataset.Dataset.study_id")
+    owner = Reference(owner_id, "auth.User.id")
