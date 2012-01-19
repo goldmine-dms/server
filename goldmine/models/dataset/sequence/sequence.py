@@ -11,7 +11,8 @@ class Sequence(Model):
 
     __storm_table__ = "dataset_sequence"
     __export__ = ["id", ("dataset", "dataset_id"), "index_type", "index_marker_type", "index_marker_location"]
-    
+    __module__ = "goldmine.models.dataset.sequence"
+
     id = UUID(primary=True, default_factory=generate_uuid)
     dataset_id = UUID()
     index_type_id = UUID()

@@ -8,6 +8,7 @@ from goldmine.db import generate_uuid
 class Location(Model):
 
     __export__ = ["id", "longitude", "latitude", "radius", "elevation"]
+    __module__ = "goldmine.models.structure"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     longitude = Float()

@@ -9,7 +9,8 @@ class Type(Model):
 
     __storm_table__ = "dataset_sequence_type"
     __export__ = ["id", "name", "unit", "description"]
-    
+    __module__ = "goldmine.models.dataset.sequence"
+
     id = UUID(primary=True, default_factory=generate_uuid)
     name = Unicode()
     unit = Unicode()

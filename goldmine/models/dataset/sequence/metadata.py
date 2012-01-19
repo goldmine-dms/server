@@ -10,7 +10,8 @@ class Metadata(Model):
 
     __storm_table__ = "dataset_sequence_metadata"
     __export__ = ["id", ("metadata", "metadata_id"), ("sequence", "sequence_id"), ("parameter", "parameter_id"), ("index", "index_id"), ("point", "point_id")]
-    
+    __module__ = "goldmine.models.dataset.sequence"
+
     id = UUID(primary=True, default_factory=generate_uuid)
     
     metadata_id = UUID()

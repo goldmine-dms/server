@@ -1,4 +1,5 @@
 port = 8080
+www_client = /home/goldmine/client-www/
 
 #### Debug configuration
 debug = true

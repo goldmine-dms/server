@@ -10,7 +10,8 @@ class Parameter(Model):
 
     __storm_table__ = "dataset_sequence_parameter"
     __export__ = ["id", "type", "uncertainty_value", "uncertainty_type", ("sequence", "sequence_id")]
-    
+    __module__ = "goldmine.models.dataset.sequence"
+
     id = UUID(primary=True, default_factory=generate_uuid)
     sequence_id = UUID()
     type_id = UUID()

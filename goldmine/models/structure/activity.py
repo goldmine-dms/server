@@ -8,6 +8,7 @@ from goldmine.db import generate_uuid
 class Activity(Model):
 
     __export__ = ["id", "name", "description", "location", ("project", "project_id"), ("studies", None)]
+    __module__ = "goldmine.models.structure"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     name = Unicode()

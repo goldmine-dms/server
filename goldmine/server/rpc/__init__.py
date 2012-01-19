@@ -21,10 +21,10 @@ Non-authenticated functions (main namespace)
 @rpc
 def authenticate(username, password):
     """ Authenticate a user """
-    u = db().find(User, User.username == unicode(username)).one()
+    u = db().find(auth.User, auth.User.username == unicode(username)).one()
     if u is None or not u.authenticate(password):
         raise Unauthorized("Invalid user or password")
-    return Token.create_token(u).id
+    return auth.Token.create_token(u).id
 
 @rpc
 def version():

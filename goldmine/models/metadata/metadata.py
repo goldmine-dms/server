@@ -10,6 +10,7 @@ from goldmine.db import generate_uuid, db
 class Metadata(Model):
 
     __export__ = ["id", ("dataset", "dataset_id"), "metadata_type", "metadata_handler", "created", ("created_by", "created_by_id"), "metadata"]
+    __module__ = "goldmine.models.metadata"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     dataset_id = UUID()

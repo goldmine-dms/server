@@ -6,8 +6,10 @@ from goldmine.models import *
 from goldmine.db import generate_uuid
 
 class Study(Model):
-
+    
+    __storm_table__ = "study"
     __export__ = ["id", "name", "description", ("activities", None), ("datasets", None), ("owner", "owner_id")]
+    __module__ = "goldmine.models.structure"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     name = Unicode()

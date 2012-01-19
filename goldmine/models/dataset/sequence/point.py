@@ -10,7 +10,8 @@ class Point(Model):
 
     __storm_table__ = "dataset_sequence_point"
     __export__ = ["id", "value", "uncertainty_value", "uncertainty_type", ("parameter", "parameter_id"), ("index", "index_id")]
-    
+    __module__ = "goldmine.models.dataset.sequence"
+
     id = UUID(primary=True, default_factory=generate_uuid)
     parameter_id = UUID()
     index_id = UUID()

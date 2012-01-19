@@ -8,6 +8,7 @@ from goldmine.db import generate_uuid
 class Permission(Model):
     
     __export__ = ["id", ("study", "study_id"), ("group", "group_id"), "name", "identifier"]
+    __module__ = "goldmine.models.auth"
     
     study_id = UUID()
     group_id = UUID()

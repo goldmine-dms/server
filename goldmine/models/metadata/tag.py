@@ -9,6 +9,7 @@ class Tag(Model):
 
     __storm_table__ = "metadata_tag"
     __export__ = ["id", "tag"]
+    __module__ = "goldmine.models.metadata"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     metadata_id = UUID()

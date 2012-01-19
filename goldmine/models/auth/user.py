@@ -11,6 +11,7 @@ class User(Model):
 
     __storm_table__ = "user"
     __export__ = ["id", "username", "fullname", "email", "userlevel"]
+    __module__ = "goldmine.models.auth"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     username = Unicode()

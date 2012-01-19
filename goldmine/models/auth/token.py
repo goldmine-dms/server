@@ -11,8 +11,9 @@ from goldmine.db import db
 
 class Token(Model):
 
-    __storm_table__ = "tokens"
+    __storm_table__ = "token"
     __export__ = ["id", "timestamp", ("user", "user_id")]
+    __module__ = "goldmine.models.auth"
     
     id = Unicode(primary=True)
     timestamp = Int()
@@ -45,6 +46,8 @@ class Token(Model):
         token = Token()
         token.id = unicode(uuid.uuid4().hex)
         token.timestamp = time.time()
+        from goldmine.utils import debugger
+        debugger()
         token.user = user
         
         if valid is not None:

@@ -9,6 +9,7 @@ class KeyValue(Model):
 
     __storm_table__ = "metadata_keyvalue"
     __export__ = ["id", "key", "value", "holds"]
+    __module__ = "goldmine.models.metadata"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     metadata_id = UUID()

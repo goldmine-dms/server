@@ -15,7 +15,7 @@ def needauth(func):
             raise Unauthorized("Authentication token missing")
         
         try:
-            u = Token.get_user(kwargs["auth"])
+            u = auth.Token.get_user(kwargs["auth"])
         except Exception, e:
             print e
             raise Unauthorized("Invalid authentication token")

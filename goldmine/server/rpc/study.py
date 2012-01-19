@@ -17,12 +17,12 @@ def get(sid, user):
     # FIXME: Add authentication
     sid = uuid(sid)
 
-    return noempty(db().get(Study, sid)) 
+    return noempty(db().get(structure.Study, sid)) 
     
 @needauth
 def new(name, description, user):
     # FIXME: Add authentication
-    s = Study()
+    s = structure.Study()
     s.name = name
     s.description = description
     s.owner = user
@@ -33,23 +33,23 @@ def new(name, description, user):
 def listing(search, standalone, user):
     #FIXME: Add authentication
     if standalone:
-        subselect = Select(CoreStudy.study_id, distinct=True)
+        subselect = Select(structure.ActivityStudy.study_id, distinct=True)
         if search is None or search == "":
-            rs = db().find(Study, Not(Study.id.is_in(subselect)))
+            rs = db().find(structure.Study, Not(structure.Study.id.is_in(subselect)))
         else:
-            rs = db().find(Study, Not(Study.id.is_in(subselect)), Study.name == search)
+            rs = db().find(structure.Study, Not(structure.Study.id.is_in(subselect)), structure.Study.name == search)
     else:
         if search is None or search == "":
-            rs = db().find(Study)
+            rs = db().find(structure.Study)
         else:
-            rs = db().find(Study, Study.name == search)
+            rs = db().find(structure.Study, structure.Study.name == search)
 
-    rs = rs.order_by(Study.name)
+    rs = rs.order_by(structure.Study.name)
     return rstolist(rs)
 
 @needauth
 def my(user):
-    rs = db().find(Study, Study.owner == user).order_by(Study.name)
+    rs = db().find(structure.Study, structure.Study.owner == user).order_by(structure.Study.name)
     return rstolist(rs)
 
 @needauth
@@ -57,7 +57,7 @@ def lineage(sid, user):
     #FIXME: Add authentication
 
     sid = uuid(sid)
-    study = noempty(db().get(Study, sid))
+    study = noempty(db().get(structure.Study, sid))
 
     edges = []
     nodes = []
@@ -85,9 +85,9 @@ def add_core(sid, cid, user):
     sid = uuid(sid)
     cid = uuid(cid)
     
-    study = noempty(db().get(Study, sid))
-    core = noempty(db().get(Core, cid))    
-    core.studies.add(study)
+    study = noempty(db().get(structure.Study, sid))
+    activity = noempty(db().get(Activity, cid))    
+    activity.studies.add(study)
     
 ######## PRIVATE STUFF ###############
 
