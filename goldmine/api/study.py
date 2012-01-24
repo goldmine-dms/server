@@ -4,7 +4,7 @@
 """
 Study functions
 """
-
+"""
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
@@ -122,7 +122,7 @@ def _lineage_explore(study, node, parent=None, level=0):
             info.update(child[1])
     
     return (edges, info)
-
+"""
 
 
 

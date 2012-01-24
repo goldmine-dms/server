@@ -4,31 +4,27 @@
 """
 User functions
 """
-
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
+from goldmine.controller import apimethod
 
-from goldmine.server import needauth
-from goldmine.server.service import Unauthorized
-
-@needauth
-def whoami(user):
+@apimethod.auth
+def whoami():
     return user
 
-@needauth
+@apimethod.auth(who=str)
 def user_info(who):
     who = uuid(who)
     return db().get(User, who)
 
-@needauth
-def create(username, fullname, email, password, user):
+@apimethod.auth("user.create", username=str, fullname=str, email=str, password=str)
+def create(username, fullname, email, password):
     #FIXME: Add authentication
     u = User()
     u.username = username
     u.fullname = fullname
     u.email = email
-    
     u.set_password(password)
 
     return db().add(u)

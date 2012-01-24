@@ -4,7 +4,7 @@
 """
 Type functions
 """
-
+"""
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
@@ -55,3 +55,4 @@ def new(name, unit, species, classification, storage, description, user):
     t.unit = unit
     t.description = default(description, "")
     return db().add(t)
+"""

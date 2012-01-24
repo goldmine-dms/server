@@ -4,7 +4,7 @@
 """
 Admin functions
 """
-
+"""
 import re
 
 from goldmine import *
@@ -18,10 +18,10 @@ from goldmine.utils import debugger
     
 @needauth
 def restart(user):
-    """ 
+    "x"" 
     ADMIN: Restart the server
     FIXME: Only works with CherryPy
-    """
+    "x""
     if not user.is_admin():
         raise Unauthorized("Unauthorized")  
           
@@ -31,7 +31,7 @@ def restart(user):
 
 @needauth
 def sqlquery(query, user):
-    """ ADMIN: Preform a raw SQL query """
+    "x"" ADMIN: Preform a raw SQL query "x""
     if not user.is_admin():
         raise Unauthorized("Unauthorized")  
      
@@ -51,10 +51,11 @@ def sqlquery(query, user):
 
 @needauth
 def dbg(user):
-    """ ADMIN: Drop into a debugger """
+    "x"" ADMIN: Drop into a debugger "x""
     
     if not user.is_admin():
         raise Unauthorized("Unauthorized")
 
     print "++++ Debugger requested by", user.username, "++++"
     debugger()
+"""

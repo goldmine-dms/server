@@ -46,8 +46,6 @@ class Token(Model):
         token = Token()
         token.id = unicode(uuid.uuid4().hex)
         token.timestamp = time.time()
-        from goldmine.utils import debugger
-        debugger()
         token.user = user
         
         if valid is not None:

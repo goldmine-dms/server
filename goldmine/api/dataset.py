@@ -4,7 +4,7 @@
 """
 Dataset functions
 """
-
+"""
 import numpy
 import datetime
 
@@ -234,7 +234,7 @@ def _append(ds_id, measurements, parameters, user):
     mass_insert(sql_p_head, sql_p_values, p_values)
 
 def _get_raw_data(ds, cols=None, limits=(None,None), with_ids=False):
-    """ Get all datapoints in a dataset, without metadata """
+    "x"" Get all datapoints in a dataset, without metadata "x""
 
     if cols is None:
         cols = []
@@ -287,7 +287,7 @@ def _get_raw_data(ds, cols=None, limits=(None,None), with_ids=False):
     
     
 def _get_derived_data(ds, cfg):
-    """ Get derived datapoints based on a configuration """
+    "x"" Get derived datapoints based on a configuration "x""
 
     # set default parameters
     defaults = {"limits": (None, None),
@@ -380,3 +380,4 @@ def _get_metadata(dsid, cfg=None):
 
     metadata = db().find(*args)
     return rstolist(metadata)
+"""

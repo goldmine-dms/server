@@ -4,7 +4,7 @@
 """
 Site functions
 """
-
+"""
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
@@ -39,3 +39,4 @@ def new(name, latitude, longitude, elevation, description, user):
     s.elevation = elevation
     s.description = description
     return db().add(s)
+"""

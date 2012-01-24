@@ -6,16 +6,7 @@ import os.path
 
 from goldmine import debug
 
-errorcodes = {}
-#errorcodes[-32700] = "500 Parse error"
-#errorcodes[-32600] = "400 Invalid Request"
-#errorcodes[-32601] = "404 Method Not Found"
-#errorcodes[-32602] = "500 Invalid Parameters"
-#errorcodes[-32603] = "500 Internal Error"
-#errorcodes[-32000] = "500 Server Error"
-#errorcodes[-31000] = "500 Unauthorized"
-
-def start_service(services, server="simple", port=8080, address='0.0.0.0', webroot=None):
+def HTTPService(services, server="simple", port=8080, address='0.0.0.0', webroot=None):
 
     def http_service(env, resp):
 
@@ -65,13 +56,8 @@ def start_service(services, server="simple", port=8080, address='0.0.0.0', webro
                 length=0
 
             postbody=env['wsgi.input'].read(length)
-            
             (out, err) = services[path].handleRequest(postbody)
-                        
-            if err in errorcodes:
-                resp(errorcodes[err], [("Content-type", "application/json-rpc"), ("Content-length", str(len(out)))])
-            else:
-                resp("200 OK", [("Content-type", "application/json-rpc"), ("Content-length", str(len(out)))])
+            resp("200 OK", [("Content-type", services[path].content_type), ("Content-length", str(len(out)))])
 
             return [out]
 

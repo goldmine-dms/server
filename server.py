@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import os
-
 import goldmine
+
+from goldmine.controller import Controller
+
+from goldmine.services.http import HTTPService
+from goldmine.protocols.json import JSONRPCProtocol
+
 config = goldmine.config('config.ini')
 
-from goldmine.server.http_service import start_service
-from goldmine.server.service import JSONRPCService
-from goldmine.server import rpc
-
-if __name__ == '__main__':
-
-    # Start the RPC service
-    goldmine.debug("Starting server", module="rpcserver")
-    start_service({"/service": JSONRPCService(rpc)}, "cherrypy", port=int(config["port"]), webroot=config["www_client"])
+HTTPService(
+    {
+        "/service": JSONRPCProtocol(Controller)
+    },
+    server=config["server"], 
+    port=int(config["port"]), 
+    webroot=config["www_client"]
+)
 
