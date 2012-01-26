@@ -24,8 +24,6 @@ class JSONRPCProtocol:
 
     def __init__(self, controller):
         self.controller = controller
-        # FIXME: Remove
-        # self.prefix = [k for k, v in sys.modules.iteritems() if v == self.service][0]
 
     def handleRequest(self, data):   
         error = None
@@ -59,8 +57,7 @@ class JSONRPCProtocol:
             
             # resolve method
             try:
-                resolved_method = ctrl.get_method(method)
-                
+                resolved_method = ctrl.get_method(method)                
             except controller.MethodNotFoundException:
                 raise JSONRPCMethodNotFound("Method Not Found")
             
@@ -73,11 +70,10 @@ class JSONRPCProtocol:
                     result = ctrl.execute(resolved_method, **params)
                 else:                                                   # args
                     result = ctrl.execute(resolved_method, *params)
-                    
             except TypeError, e:
-                print "== TypeError caught: ", e, " =="
-                traceback.print_tb(sys.exc_info()[2])
                 raise JSONRPCInvalidParams("Invalid Params: " + e.args[0])
+            except controller.InvalidRequest, e:
+                raise JSONRPCInvalidRequest("Invalid Request: " + e.args[0])
                 
             except controller.UnauthorizedException:                    # runtime unauthorized
                 raise JSONRPCUnauthorized("Unauthorized") 
@@ -92,6 +88,10 @@ class JSONRPCProtocol:
                 result = result.__getattribute__("__serialize__")()
             except AttributeError:
                 pass
+            except Exception, e:
+                print "== Exception caught: ", str(type(e)), e, " =="
+                traceback.print_tb(sys.exc_info()[2])
+                raise JSONRPCServerError("Internal Server Error: " + e.args[0]) 
                 
             resultdict = {"jsonrpc": "2.0", "result": result, "id": id_}
             

@@ -4,60 +4,60 @@
 """
 Study functions
 """
-"""
+
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
+from goldmine.controller import *
 
-from goldmine.server import needauth, rstolist, noempty, uuid
-from goldmine.server.service import Unauthorized
-
-@needauth
-def get(sid, user):
-    # FIXME: Add authentication
-    sid = uuid(sid)
-
-    return noempty(db().get(structure.Study, sid)) 
+@apimethod.auth
+def get(study_id):
+    #FIXME: does user have access?
+    study_id = uuid(study_id)
+    return not_empty(db().get(structure.Study, study_id)) 
     
-@needauth
-def new(name, description, user):
-    # FIXME: Add authentication
+@apimethod.auth("study.create")
+def create(name, description):
     s = structure.Study()
     s.name = name
     s.description = description
     s.owner = user
     return db().add(s)
 
-
-@needauth
-def listing(search, standalone, user):
-    #FIXME: Add authentication
+@apimethod.auth
+def list(standalone=False, owned_by_user=False):
+    #FIXME: does user have access?
     if standalone:
         subselect = Select(structure.ActivityStudy.study_id, distinct=True)
-        if search is None or search == "":
+        if owned_by_user:
+            rs = db().find(structure.Study, And(Not(structure.Study.id.is_in(subselect)), structure.Study.owner == user))
+        else:
             rs = db().find(structure.Study, Not(structure.Study.id.is_in(subselect)))
-        else:
-            rs = db().find(structure.Study, Not(structure.Study.id.is_in(subselect)), structure.Study.name == search)
     else:
-        if search is None or search == "":
-            rs = db().find(structure.Study)
+        if owned_by_user:
+            rs = db().find(structure.Study, structure.Study.owner == user)
         else:
-            rs = db().find(structure.Study, structure.Study.name == search)
-
+            rs = db().find(structure.Study)
+        
     rs = rs.order_by(structure.Study.name)
-    return rstolist(rs)
+    return rs_to_list(rs)
+    
+@apimethod.auth
+def search(keyword):
+    #FIXME: does user have access?
+    rs = db().find(structure.Study, structure.Study.name == keyword)    #FIXME like search + descr
+    return rs_to_list(rs)
 
-@needauth
-def my(user):
-    rs = db().find(structure.Study, structure.Study.owner == user).order_by(structure.Study.name)
-    return rstolist(rs)
 
-@needauth
-def lineage(sid, user):
-    #FIXME: Add authentication
+#### HERTIL Fix
 
-    sid = uuid(sid)
-    study = noempty(db().get(structure.Study, sid))
+@apimethod.auth
+def lineage(study_id):
+    #FIXME: does user have access?
+
+
+    study_id = uuid(study_id)
+    study = noempty(db().get(structure.Study, study_id))
 
     edges = []
     nodes = []
@@ -79,8 +79,8 @@ def lineage(sid, user):
 
     return {"edges": list(set(edges)), "nodes": nodedict}
 
-@needauth
-def add_core(sid, cid, user):
+@apimethod.auth
+def add_core(sid, cid):
     # FIXME: Add authentication
     sid = uuid(sid)
     cid = uuid(cid)
@@ -122,7 +122,7 @@ def _lineage_explore(study, node, parent=None, level=0):
             info.update(child[1])
     
     return (edges, info)
-"""
+
 
 
 

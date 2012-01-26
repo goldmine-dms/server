@@ -7,21 +7,21 @@ User functions
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
-from goldmine.controller import apimethod
+from goldmine.controller import *
+
+@apimethod.auth(who="uuid")
+def get(who):
+    """ Get the requested user struct """
+    who = uuid(who)
+    return db().get(auth.User, who)
 
 @apimethod.auth
 def whoami():
     return user
 
-@apimethod.auth(who=str)
-def user_info(who):
-    who = uuid(who)
-    return db().get(User, who)
-
-@apimethod.auth("user.create", username=str, fullname=str, email=str, password=str)
+@apimethod.auth("user.create")
 def create(username, fullname, email, password):
-    #FIXME: Add authentication
-    u = User()
+    u = auth.User()
     u.username = username
     u.fullname = fullname
     u.email = email

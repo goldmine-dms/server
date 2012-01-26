@@ -11,6 +11,7 @@ class Lineage(Model):
 
     __export__ = ["id", ("from_dataset", "from_dataset_id"), ("to_dataset", "to_dataset_id"), "fork_type", "forked", "forked_by"]
     __module__ = "goldmine.models.structure"
+    __storm_table__ = "lineage"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     from_dataset_id = UUID()

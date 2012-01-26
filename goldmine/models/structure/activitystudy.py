@@ -8,8 +8,9 @@ class ActivityStudy(Model):
     
     __storm_primary__ = "activity_id", "study_id"
     __module__ = "goldmine.models.structure"
+    __storm_table__ = "activitystudy"
     
-    core_id = UUID()
+    study_id = UUID()
     activity_id = UUID()
         
     

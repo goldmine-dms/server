@@ -2,41 +2,39 @@
 #-*- coding:utf-8 -*-
 
 """
-Site functions
+Project functions
 """
-"""
+
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
+from goldmine.controller import *
 
-from goldmine.server import needauth, rstolist, noempty, uuid
-from goldmine.server.service import Unauthorized
+@apimethod.auth
+def get(project_id):
+    project_id = uuid(project_id)
+        
+    return not_empty(db().get(structure.Project, project_id))
+    
+@apimethod.auth
+def list():
+    rs = db().find(structure.Project).order_by(structure.Project.name)
+    return rs_to_list(rs)
 
-@needauth
-def get(sid, user):
-    # FIXME: Add authentication
-    sid = uuid(sid)
-        
-    return noempty(db().get(Site, sid))
+@apimethod.auth
+def search(keyword):
+    rs = db().find(structure.Project, structure.Project.name == keyword).order_by(structure.Project.name)
+    return rs_to_list(rs)
     
-@needauth
-def listing(search, user):
-    # FIXME: Add authentication
-    if search is None or search == "":
-        rs = db().find(Site).order_by(Site.name)
-    else:
-        rs = db().find(Site, Site.name == search).order_by(Site.name)
-        
-    return rstolist(rs)
+@apimethod.auth("project.create", location="location")
+def create(name, description=None, location={}):
     
-@needauth  
-def new(name, latitude, longitude, elevation, description, user):
-    # FIXME: Add authentication
-    s = Site()
-    s.name = name
-    s.latitude = latitude
-    s.longitude = longitude
-    s.elevation = elevation
-    s.description = description
-    return db().add(s)
-"""
+    project = structure.Project()
+    project.name = name
+    project.description = description
+    
+    if len(location) :
+        loc = structure.Location.from_struct(location)
+        project.location = db().add(loc)
+    
+    return db().add(project)

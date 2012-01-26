@@ -9,6 +9,7 @@ class Project(Model):
 
     __export__ = ["id", "name", "description", "location", "activities"]
     __module__ = "goldmine.models.structure"
+    __storm_table__ = "project"
     
     id = UUID(primary=True, default_factory=generate_uuid)
     name = Unicode()
