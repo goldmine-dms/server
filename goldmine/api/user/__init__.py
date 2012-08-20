@@ -4,6 +4,7 @@
 """
 User functions
 """
+
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
@@ -18,6 +19,10 @@ def get(who):
 @apimethod.auth
 def whoami():
     return user
+    
+@apimethod.auth
+def logout():
+    print user
 
 @apimethod.auth("user.create")
 def create(username, fullname, email, password):
@@ -28,3 +33,4 @@ def create(username, fullname, email, password):
     u.set_password(password)
 
     return db().add(u)
+

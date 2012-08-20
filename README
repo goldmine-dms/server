@@ -14,12 +14,16 @@ If using PostgreSQL for the RDBMS:
 
 Via PYPI:
  
-    $ sudo easy_install termcolor storm
+    $ sudo pip install termcolor storm
 
 In STORM 0.18 release, there is a bug in the UUID handling, apply the following fixes: 
 
     https://code.launchpad.net/~jkakar/storm/uuid-bug-fixes
 
+For debugging purposes, the installation of "python-observer" can be productive, to restart the HTTP service when code changes
+
+    $ sudo pip install observer
+    $ autorestart ./http_server.py # run like this to auto restart server
 
 Installation
 ------------
@@ -57,13 +61,13 @@ Then edit the configuration of config.ini to correspond to the above users and p
 And populate the schema to the database and start the server
 
     ./loadschema.sh
-    ./server.py
+    ./http_service.py
 
 
 License and copyright
 ---------------------
 
-goldmine (c) Christian Panton 2011
+goldmine (c) Christian Panton 2011-2012
 
     This program is free software: you can redistribute it and/or modif
     it under the terms of the GNU General Public License as published by

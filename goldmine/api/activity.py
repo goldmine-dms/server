@@ -3,7 +3,6 @@
 
 """
 Activity functions
-
 """
 from goldmine import *
 from goldmine.db import db

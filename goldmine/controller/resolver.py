@@ -3,7 +3,7 @@
 
 import pkgutil
 
-
+from goldmine import debug
 from goldmine.controller import *
 from goldmine.utils import singleton
 
@@ -13,7 +13,7 @@ class Resolver:
 
     def __init__(self):
         self.cache = {}
-        self.nsmain = __import__(self.namespace, fromlist=("foobarbaz"))
+        self.nsmain = __import__(self.namespace, fromlist=("foo"))
         self.walk(self.namespace, self.namespace, self.nsmain)
         
     def walk(self, namespace, mainnamespace, main):
@@ -25,7 +25,11 @@ class Resolver:
             if ispkg:
                 self.walk(full_package_name, mainnamespace, module)
                 
-    def resolve(self, method):
+    def resolve(self, method, orig_method=None):
+        
+        if orig_method is None:
+            orig_method = method
+            
         try:
             if "." in method:
                 (ns, method) = method.rsplit(".", 1)
@@ -33,7 +37,7 @@ class Resolver:
             else:
                 resolved = getattr(self.nsmain, method)
         except Exception, e:
-            print e
+            debug("Failure resolving call to function '%s'" % (orig_method), module="api_resolve")
             raise MethodNotFoundException()
             
         return resolved

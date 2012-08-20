@@ -52,6 +52,8 @@ def debug(message, line=None, params=None, module=None, always=False):
     
     if (c.debug and module not in c["debug_exclude"] or always):
     
+        print time.strftime("%H:%M:%S"),
+    
         if module:
             print colored("<%s>" % module, 'blue'),
             

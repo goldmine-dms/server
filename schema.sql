@@ -124,12 +124,11 @@ create table dataset_sequence (
     index_marker_location integer
 );
 
-drop table if exists dataset_sequence_type;
-create table dataset_sequence_type (
+drop table if exists dataset_type;
+create table dataset_type (
     id uuid primary key, 
     name varchar(255) unique, 
     unit varchar(50), 
-    storage integer,
     description text
 );
 
@@ -139,7 +138,8 @@ create table dataset_sequence_parameter (
     sequence_id uuid not null, 
     type_id uuid,
     uncertainty_value float,
-    uncertainty_type float
+    uncertainty_type int,
+    storage int
 );
 
 drop table if exists dataset_sequence_index;
@@ -157,7 +157,7 @@ create table dataset_sequence_point (
     index_id uuid not null, 
     "value" float not null, 
     uncertainty_value float,
-    uncertainty_type float
+    uncertainty_type int
 );
 
 create index dataset_sequence_point_parameter on dataset_sequence_point(parameter_id);
@@ -177,13 +177,21 @@ create table dataset_sequence_metadata (
 -- AUTH
 drop table if exists "user";
 create table "user" (
-    id uuid primary key, 
-    username varchar(50),
+    id uuid primary key not null, 
+    username varchar(50) not null,
     fullname varchar(255), 
-    email varchar(255), 
-    password varchar(60), 
+    email varchar(255) not null, 
+    password varchar(60) not null, 
     userlevel integer not null
 );
+
+drop table if exists "user_settings";
+create table "user_settings" (
+    "id" uuid primary key not null,
+    "user_id" uuid not null,
+    "setting" varchar(255) not null,
+    "value" varchar(255)
+)
 
 drop table if exists "token";
 create table "token" (
@@ -216,4 +224,3 @@ create table permission (
 );
 
 insert into "user" (id, username, fullname, email, password, userlevel) values ('12345678-90ab-cdef-1234-567890abcdef', 'admin', 'Database Administrator', 'user@example.com', '$2a$12$3xJErTM6NcJSNKSFP5Chxe9O3XnVmA6V8xXpTD2Jr8Srrst.np4AS', 10);
-

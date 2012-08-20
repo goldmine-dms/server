@@ -1,15 +1,16 @@
-port = 8080
-server = cherrypy
-www_client = /home/goldmine/client-www/
-
-#### Debug configuration
 debug = true
-
-# Excluding modules:
 debug_exclude =  storm-load, storm-save, raw-query, webserver
 
-#### Database configuration
-
+[database]
 # For SQLite
-# db = sqlite:goldmine.db
-db = postgres://goldmine:goldmine@localhost/goldmine
+# connection = sqlite:goldmine.db
+
+# For Postgres
+connection = postgres://goldmine:goldmine@127.0.0.1/goldmine
+
+[services]
+[[http]]
+port = 8080
+engine = cherrypy
+webroot = /home/user/goldmine/client-www # no trailing slash
+

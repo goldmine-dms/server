@@ -16,11 +16,12 @@ class Sequence(Model):
     id = UUID(primary=True, default_factory=generate_uuid)
     dataset_id = UUID()
     index_type_id = UUID()
-    index_point_type = Enum(map={"point": 1, "span": 2})
-    index_point_location = Enum(map={"center": 1, "start": 2, "end": 3})
+    index_marker_type = Enum(map={"point": 1, "span": 2})
+    index_marker_location = Enum(map={"center": 1, "start": 2, "end": 3})
 
     dataset = Reference(dataset_id, "dataset.Dataset.id")
-    
+    index_type = Reference(index_type_id, "dataset.sequence.Type.id")
+
     
     
     

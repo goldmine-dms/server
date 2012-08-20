@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 
 """
-Study functions
+Study functions 
 """
 
 from goldmine import *
@@ -48,13 +48,9 @@ def search(keyword):
     rs = db().find(structure.Study, structure.Study.name == keyword)    #FIXME like search + descr
     return rs_to_list(rs)
 
-
-#### HERTIL Fix
-
 @apimethod.auth
 def lineage(study_id):
     #FIXME: does user have access?
-
 
     study_id = uuid(study_id)
     study = noempty(db().get(structure.Study, study_id))
@@ -80,13 +76,14 @@ def lineage(study_id):
     return {"edges": list(set(edges)), "nodes": nodedict}
 
 @apimethod.auth
-def add_core(sid, cid):
-    # FIXME: Add authentication
-    sid = uuid(sid)
-    cid = uuid(cid)
+def add_activity(study_id, activity_id):
     
-    study = noempty(db().get(structure.Study, sid))
-    activity = noempty(db().get(Activity, cid))    
+    # FIXME: does user have access?
+    study_id = uuid(study_id)
+    activity_id = uuid(activity_id)
+    
+    study = not_empty(db().get(structure.Study, study_id))
+    activity = not_empty(db().get(structure.Activity, activity_id))    
     activity.studies.add(study)
     
 ######## PRIVATE STUFF ###############
@@ -99,8 +96,7 @@ def _lineage_explore(study, node, parent=None, level=0):
     edges = []
     info = {}
 
-    info[unicode(node.id)] = {"description": node.description, "level": level}
-    
+    info[unicode(node.id)] = {"description": node.description, "level": level}    
     parents = list(node.parents)
     
     try:
@@ -112,8 +108,7 @@ def _lineage_explore(study, node, parent=None, level=0):
         for p in parents:
             info[unicode(p.id)] = {"description": p.description,
                                    "level": level-1}
-
-
+                                   
     for child in node.children:
         edges.append((unicode(node.id), unicode(child.id)))
         child = _lineage_explore(study, child, node, level + 1)
