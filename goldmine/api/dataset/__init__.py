@@ -40,7 +40,7 @@ def close(dataset_id):
         raise Exception("Dataset already closed")
         
 @apimethod
-def supported_types():
+def supported_dataset_types():
     names = [obj[0] for obj in dataset.DATASET_TYPES]
     return names
 
@@ -56,7 +56,7 @@ def _fork(from_dataset, to_dataset):
 def _create(type, study, description, dataset_forked_from=None):
     #FIXME: User has access?
     
-    if type not in supported_types():
+    if type not in supported_dataset_types():
         raise Exception("Unsupported type")
         
     ds = dataset.Dataset()

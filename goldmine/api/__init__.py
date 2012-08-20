@@ -16,5 +16,8 @@ def authenticate(username, password):
 
 @apimethod
 def version():
-    return {"api": 1}
+    return {"api": 2}
 
+@apimethod
+def methods():
+    return [method.fqn[len(API_NAMESPACE)+1:] for method in exposed_methods]

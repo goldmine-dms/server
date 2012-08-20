@@ -58,5 +58,11 @@ class Token(Model):
         invalid = db().find(Token, Token.validity + Token.timestamp < int(time.time()))
         for invalid_token in invalid:
             db().remove(invalid_token)
+            
+    @staticmethod
+    def expire(user):
+        tokens = db().find(Token, Token.user == user, Not(Token.validity == None))
+        for token in tokens:
+            db().remove(token)
     
     

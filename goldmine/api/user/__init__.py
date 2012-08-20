@@ -22,7 +22,7 @@ def whoami():
     
 @apimethod.auth
 def logout():
-    print user
+    auth.Token.expire(user)
 
 @apimethod.auth("user.create")
 def create(username, fullname, email, password):

@@ -6,6 +6,10 @@ import uuid as _uuid
 
 from goldmine.models import auth
 
+exposed_methods = []
+
+API_NAMESPACE = "goldmine.api"
+
 class MethodNotFoundException(Exception):
     pass
 
@@ -34,6 +38,7 @@ class apimethod:
             self.permission.extend(list(args))
         if not self.decorator_being_build:
             self.method_code = self.method.__code__
+            self.method.fqn = "%s.%s" % (self.method.__module__, self.method.func_name)
             self._register(self.method)
             
     @staticmethod
@@ -68,13 +73,14 @@ class apimethod:
             self.method = args[0]
             self.decorator_being_build = False
             self.method_code = self.method.__code__
+            self.method.fqn = "%s.%s" % (self.method.__module__, self.method.func_name)
             self._register(self.method)
             return self
         else:
             raise Exception("Need to be called with as object.token(auth_token)(arg0, arg1, ...)")
 
     def _register(self, method):
-        #FIXME: add to registry
+        exposed_methods.append(method)
         if method.__doc__:
             self.documentation = method.__doc__
             

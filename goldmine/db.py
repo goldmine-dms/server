@@ -66,7 +66,6 @@ class Database:
         if t not in self.stores:
             debug("Spawning DB connection for %s" % str(t), module="database")
             self.stores[t] = Store(self.database)  
-        
         return self.stores[t] 
         
         

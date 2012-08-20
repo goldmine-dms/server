@@ -9,12 +9,12 @@ from goldmine.utils import singleton
 
 @singleton
 class Resolver:
-    namespace = "goldmine.api"
+
 
     def __init__(self):
         self.cache = {}
-        self.nsmain = __import__(self.namespace, fromlist=("foo"))
-        self.walk(self.namespace, self.namespace, self.nsmain)
+        self.nsmain = __import__(API_NAMESPACE, fromlist=("foo"))
+        self.walk(API_NAMESPACE, API_NAMESPACE, self.nsmain)
         
     def walk(self, namespace, mainnamespace, main):
         for importer, package_name, ispkg in pkgutil.iter_modules(main.__path__):
