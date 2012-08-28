@@ -18,7 +18,7 @@ def get(dataset_id):
     return ds
     
 @apimethod.auth
-def fork(from_dataset_id, to_dataset_id):
+def fork(from_dataset_id, to_dataset_id, fork_type="derived"):
     #FIXME: User has access?
     #FIXME: Check for circular graph
     from_dataset_id = uuid(from_dataset_id)
@@ -27,7 +27,8 @@ def fork(from_dataset_id, to_dataset_id):
     from_dataset = not_empty(db().get(Dataset, from_dataset_id))
     to_dataset = not_empty(db().get(Dataset, to_dataset_id))
     
-    return _fork(from_dataset, to_dataset)
+    # FIXME: pass on to private function, what happens to user?
+    return do_fork(from_dataset, to_dataset, user)
     
 @apimethod.auth
 def close(dataset_id):  
@@ -46,21 +47,26 @@ def supported_dataset_types():
 
 # Private functions
 
-def _fork(from_dataset, to_dataset):
-    lineage = Lineage()
+def do_fork(from_dataset, to_dataset, user, fork_type="derived"):
+    #FIXME user wierdness
+    lineage = structure.Lineage()
     lineage.from_dataset = from_dataset
     lineage.to_dataset = to_dataset
+    lineage.forked_by = user
+    lineage.fork_type = fork_type
     return db().add(lineage)
 
 
-def _create(type, study, description, dataset_forked_from=None):
+def create(type, study, description, dataset_forked_from=None, fork_type="derived"):
     #FIXME: User has access?
     
-    if type not in supported_dataset_types():
+    s = resolver.get("dataset.supported_dataset_types", user)
+    if type not in s():
         raise Exception("Unsupported type")
         
     ds = dataset.Dataset()
     ds.type = type
+    ds.creator = user
     ds.study = study
     ds.description = description
     ds = db().add(ds)
@@ -68,7 +74,8 @@ def _create(type, study, description, dataset_forked_from=None):
     if dataset_forked_from is not None:
         from_dataset_id = uuid(dataset_forked_from)
         from_dataset = not_empty(db().get(dataset.Dataset, from_dataset_id))
-        _fork(from_dataset, ds)
+        #FIXME
+        do_fork(from_dataset, ds, user, fork_type)
                 
     return ds
     

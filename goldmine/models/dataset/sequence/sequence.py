@@ -10,7 +10,7 @@ from goldmine.db import generate_uuid
 class Sequence(Model):
 
     __storm_table__ = "dataset_sequence"
-    __export__ = ["id", ("dataset", "dataset_id"), "index_type", "index_marker_type", "index_marker_location"]
+    __export__ = [("dataset", "dataset_id"), "index_type", "index_marker_type", "index_marker_location", "parameters"]
     __module__ = "goldmine.models.dataset.sequence"
 
     id = UUID(primary=True, default_factory=generate_uuid)
@@ -20,7 +20,8 @@ class Sequence(Model):
     index_marker_location = Enum(map={"center": 1, "start": 2, "end": 3})
 
     dataset = Reference(dataset_id, "dataset.Dataset.id")
-    index_type = Reference(index_type_id, "dataset.sequence.Type.id")
+    parameters = ReferenceSet(id, "dataset.sequence.Parameter.sequence_id")
+    index_type = Reference(index_type_id, "dataset.Type.id")
 
     
     

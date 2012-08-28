@@ -17,7 +17,7 @@ def get(project_id):
     return not_empty(db().get(structure.Project, project_id))
     
 @apimethod.auth
-def list():
+def all():
     rs = db().find(structure.Project).order_by(structure.Project.name)
     return rs_to_list(rs)
 

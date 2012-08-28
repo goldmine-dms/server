@@ -8,7 +8,7 @@ from goldmine.db import generate_uuid
 class Index(Model):
 
     __storm_table__ = "dataset_sequence_index"
-    __export__ = ["id", "location", "span"]
+    __export__ = ["id", "location", "span", "points"]
     __module__ = "goldmine.models.dataset.sequence"
     
     id = UUID(primary=True, default_factory=generate_uuid)
@@ -16,4 +16,5 @@ class Index(Model):
     location = Float()
     span = Float()
     sequence = Reference(sequence_id, "dataset.sequence.Sequence.id")
+    points = ReferenceSet(id, "dataset.sequence.Point.index_id")
 

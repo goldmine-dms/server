@@ -2,6 +2,7 @@
 #-*- coding:utf-8 -*-
 
 import pkgutil
+import new
 
 from goldmine import debug
 from goldmine.controller import *
@@ -38,8 +39,18 @@ class Resolver:
                 resolved = getattr(self.nsmain, method)
         except Exception, e:
             debug("Failure resolving call to function '%s'" % (orig_method), module="api_resolve")
-            raise MethodNotFoundException()
+            ex = MethodNotFoundException()
+            ex.message = "Method not found: %s" % orig_method
+            raise ex
             
         return resolved
                 
-   
+# stupid hack
+def get(method, user):
+    fn = Resolver().resolve(method)
+    if isinstance(fn, apimethod):
+        return fn.as_user(user)
+    else:
+        glob = fn.func_globals.copy()
+        glob.update({"user": user})
+        return new.function(fn.func_code, glob, argdefs=fn.func_defaults)

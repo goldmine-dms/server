@@ -4,6 +4,7 @@
 import code
 import sys
 import math
+import time
 
 from itertools import islice, chain
 
@@ -25,6 +26,26 @@ def transpose(lists):
     """
     if not lists: return []
     return map(lambda *row: list(row), *lists)
+    
+    
+def retry(ExceptionToCheck, tries=3, delay=0.5, backoff=2):
+    """Retry decorator
+    original from http://wiki.python.org/moin/PythonDecoratorLibrary#Retry
+    """
+    def deco_retry(f):
+        def f_retry(*args, **kwargs):
+            mtries, mdelay = tries, delay
+            while mtries > 0:
+                try:
+                    return f(*args, **kwargs)
+                except ExceptionToCheck, e:
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+                    lastException = e
+            raise lastException
+        return f_retry # true decorator
+    return deco_retry
 
 def debugger():
     """ Drop into debugger

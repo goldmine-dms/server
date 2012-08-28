@@ -11,7 +11,7 @@ exposed_methods = []
 API_NAMESPACE = "goldmine.api"
 
 class MethodNotFoundException(Exception):
-    pass
+    message = "Method not found"
 
 class UnauthorizedException(Exception):
     pass
@@ -43,19 +43,19 @@ class apimethod:
             
     @staticmethod
     def auth(*args, **kwargs):
-    
         am = apimethod(*args, **kwargs)
         am.auth_required = True
         return am
         
-    def token(self, token):
-    
-        user = auth.Token.get_user(token)
+    def as_user(self, user):
         self.check_access(user)
-        
         glob = self.method.func_globals.copy()
         glob.update({"user": user})
         return new.function(self.method_code, glob, argdefs=self.method.func_defaults)
+        
+    def token(self, token):
+        user = auth.Token.get_user(token)
+        return self.as_user(user)
         
     def check_access(self, user=None):
                    

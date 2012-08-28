@@ -2,7 +2,7 @@
 #-*- coding:utf-8 -*-
 
 from goldmine import debug
-from goldmine.controller import Resolver, UnauthorizedException
+from goldmine.controller import *
 from goldmine.db import db
 
 class Controller:     
@@ -18,12 +18,16 @@ class Controller:
         resolved = self.resolver.resolve(method)
         try:
             return resolved.token(self.token)
-        except Exception, e:
+        except MethodNotFoundException, e1:
+            raise
+        except AttributeError, e2:
+            raise MethodNotFoundException()
+        except UnauthorizedException, e3:
             debug("Unauthorized call to %s" % (method), module="api_resolve")
-            raise UnauthorizedException()
+            raise
             
-    def execute(self, method, *args, **kwargs):
-        debug("%s%s" % (method.func_name, str(args)), module="api_execute")
+    def execute(self, method, *args, **kwargs):    
+        debug("%s.%s%s" % (method.__module__, method.__name__, str(args)), module="api_execute")
         return method(*args, **kwargs)
 
     def on_success(self):

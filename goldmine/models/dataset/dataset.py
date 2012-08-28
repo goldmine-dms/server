@@ -10,7 +10,7 @@ from goldmine.db import generate_uuid
 class Dataset(Model):
 
     __storm_table__ = "dataset"
-    __export__ = ["id", "type", ("study", "study_id"), "created", "closed", "description", "curation_status", "curated", ("curated_by", "curated_by_id"), ("parents", None), ("children", None)]
+    __export__ = ["id", "type", ("study", "study_id"), "created", "creator", "closed", "description", "curation_status", "curated", ("curated_by", "curated_by_id"), ("parents", None), ("children", None)]
     __module__ = "goldmine.models.dataset"
     
     id = UUID(primary=True, default_factory=generate_uuid)
@@ -18,6 +18,8 @@ class Dataset(Model):
     study_id = UUID()
     
     created = DateTime(default_factory=datetime.datetime.now)
+    creator_id = UUID()
+    creator = Reference(creator_id, "auth.User.id")
     closed = DateTime()
     
     description = Unicode()

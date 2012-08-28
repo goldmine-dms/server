@@ -27,7 +27,7 @@ def create(name, unit, description=None):
     return db().add(type)
 
 @apimethod
-def list():
+def all():
     rs = db().find(dataset.Type).order_by(dataset.Type.name)
     return rs_to_list(rs)
     

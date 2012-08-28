@@ -60,6 +60,7 @@ create table dataset (
     "type" varchar(255) not null,
     "study_id" uuid not null,
     "created" timestamp not null,
+    "creator_id" uuid not null,
     "closed" timestamp,
     "curation_status" int,
     "curated_by_id" uuid,
@@ -191,7 +192,7 @@ create table "user_settings" (
     "user_id" uuid not null,
     "setting" varchar(255) not null,
     "value" varchar(255)
-)
+);
 
 drop table if exists "token";
 create table "token" (

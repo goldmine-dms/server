@@ -59,7 +59,7 @@ class JSONRPCProtocol:
             try:
                 resolved_method = ctrl.get_method(method)                
             except controller.MethodNotFoundException:
-                raise JSONRPCMethodNotFound("Method Not Found")
+                raise JSONRPCMethodNotFound("Method Not Found")         # pre-run not found
             
             except controller.UnauthorizedException:                    # pre-run unauthorized
                 raise JSONRPCUnauthorized("Unauthorized")
@@ -74,7 +74,8 @@ class JSONRPCProtocol:
                 raise JSONRPCInvalidParams("Invalid Params: " + e.args[0])
             except controller.InvalidRequest, e:
                 raise JSONRPCInvalidRequest("Invalid Request: " + e.args[0])
-                
+            except controller.MethodNotFoundException, e2:                  # runtime not found
+                raise JSONRPCMethodNotFound(e2.message)                
             except controller.UnauthorizedException:                    # runtime unauthorized
                 raise JSONRPCUnauthorized("Unauthorized") 
                 

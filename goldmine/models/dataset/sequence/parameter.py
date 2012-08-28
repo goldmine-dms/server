@@ -18,7 +18,6 @@ class Parameter(Model):
     uncertainty_value = Float()
     uncertainty_type = Enum(map={"absolute": 1, "relative": 2})
     storage = Enum(map={"float": 1, "int": 2})
-   
     sequence = Reference(sequence_id, "dataset.sequence.Sequence.id")
-    type = Reference(type_id, "dataset.sequence.Type.id")
+    type = Reference(type_id, "dataset.Type.id")
 

@@ -11,29 +11,24 @@ from goldmine.db import db
 from goldmine.models import *
 from goldmine.controller import *
 
+import itertools
 
 @apimethod.auth
-def get(sequence_id):
+def get(dataset_id):
     #FIXME: User has access?
-    sequence_id = uuid(sequence_id)
-    return not_empty(db().get(dataset.sequence.Sequence, sequence_id))
+    return sequence_from_dataset(dataset_id)
     
-@apimethod.auth
-def get_from_dataset(dataset_id):
-    #FIXME: User has access?
-    dataset_id = uuid(dataset_id)
-    return not_empty(db().find(dataset.sequence.Sequence, dataset.sequence.Sequence.dataset_id == dataset_id).one())
-
 @apimethod.auth("dataset.sequence.create")
 def create(study_id, description, index_type_id, index_marker_type="point", index_marker_location="center", dataset_forked_from=None):
     
     study_id = uuid(study_id)
     index_type_id = uuid(index_type_id)
     study = not_empty(db().get(structure.Study, study_id))
-    index_type = not_empty(db().get(dataset.sequence.Type, index_type_id))
+    index_type = not_empty(db().get(dataset.Type, index_type_id))
+
+    #FIXME unclean
     
-    _create = Resolver().resolve("dataset._create")
-    parent = _create(u"sequence", study, description, dataset_forked_from)
+    parent = resolver.get("dataset.create", user)(u"sequence", study, description, dataset_forked_from)
         
     sequence = dataset.sequence.Sequence()
     sequence.index_type = index_type
@@ -45,17 +40,15 @@ def create(study_id, description, index_type_id, index_marker_type="point", inde
     return sequence
 
 @apimethod.auth
-def add_parameter(sequence_id, type_id, uncertainty_value=None, uncertainty_type="absolute", storage="float"):
+def add_parameter(dataset_id, type_id, uncertainty_value=None, uncertainty_type="absolute", storage="float"):
     #FIXME: User has access?
-    
-    sequence_id = uuid(sequence_id)
-    sequence = not_empty(db().get(dataset.sequence.Sequence, sequence_id))
+    sequence = sequence_from_dataset(dataset_id)
     
     if sequence.dataset.closed:
         raise Exception("Dataset is closed")
     
     type_id = uuid(type_id)
-    type = not_empty(db().get(dataset.sequence.Type, type_id))
+    type = not_empty(db().get(dataset.Type, type_id))
     
     param = dataset.sequence.Parameter()
     param.type = type
@@ -67,12 +60,218 @@ def add_parameter(sequence_id, type_id, uncertainty_value=None, uncertainty_type
     return db().add(param)
     
 @apimethod.auth
-def add_data(sequence_id, indicies, parameter_ids, values):
-    pass
+def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncertainty_type = "absolute"):
+    """
+    Add a single measurement, not optimized for mass insert
+    
+    dataset_id:         UUID = the dataset
+    
+    index:              number = index location
+                        [number, number] = index location, index span
+                    
+    parameter_id:       UUID = parameter id
+                        [UUID, ...]   = ordered list of parameter ids
+                                        for corresponding values
+                                  
+    value:              number = value
+                        [number, ...] = ordered list of values 
+                                        for corresponding parameter ids
+                                    
+    uncertainty:        number = uncertainty value
+                        [number, ...] = ordered list of uncertainties 
+                                        for corresponding parameter ids
+                                    
+    uncertainty_type:   str = uncertainty type ("absolute" or "relative")
+                        [str, ...]    = ordered list of uncertainty types
+                                        for corresponding parameter ids
+    """
+                    
+    sequence = sequence_from_dataset(dataset_id)
+    
+    if sequence.dataset.closed:
+        raise Exception("Dataset is closed")
+    
+    # FIXME user has access?
+        
+    if type(index) in [tuple, list]:
+        
+        if sequence.index_marker_type != "span":
+            raise TypeError("dataset cannot contain spanned points")
+            
+        if len(index) != 2:
+            raise TypeError("index list must be two elements [index, span]")
+        
+        index = index[0]
+        span = index[1]
+        
+    else:
+        
+        if index is None:
+            raise TypeError("index location must be a number")
+        span = None
+        
+    idx = dataset.sequence.Index()
+    idx.location = index
+    idx.span = span
+    idx.sequence = sequence
+        
+    if type(parameter_id) in [str, unicode]:
+        parameter_id = [parameter_id]
+        value = [value]
+        uncertainty = [uncertainty]
+        uncertainty_type = [uncertainty_type]
+
+    for i, pid in enumerate(parameter_id):
+        p = dataset.sequence.Point()
+        
+        parameter = db().get(dataset.sequence.Parameter, uuid(pid))
+        
+        if parameter is None:
+            raise TypeError("parameter %s is not a valid parameter id" % pid)
+        
+        if parameter.sequence is not sequence:
+            raise TypeError("parameter %s is not a part of current dataset" % pid)
+        
+        p.parameter = parameter
+        p.index = idx
+        p.value = value[i]
+        
+        if uncertainty is not None and uncertainty[i] is not None:
+            p.uncertainty_value = uncertainty[i]
+            
+        if type(uncertainty_type) in [list, tuple]:
+            p.uncertainty_type = uncertainty_type[i]
+        else:
+            p.uncertainty_type = uncertainty_type
+            
+        db().add(p)
+    
+    return db().add(idx)
+
+@apimethod.auth
+def get_data(dataset_id, parameter_id=None):
+
+    """
+    dataset_id:         id of the dataset
+    
+    parameter_id:       not set        - all parameters, in random order
+                        UUID           - single parameter
+                        [UUID, ...]    - specified parameters in order
+    """
+
+    #FIXME user has access
+    
+    sequence = sequence_from_dataset(dataset_id)
+    
+    has_span = sequence.index_marker_type == "span"
+        
+    if parameter_id is None:
+        parameter_id = []
+        for parameter in sequence.parameters:
+            parameter_id.append(unicode(parameter.id))
+            
+    elif type(parameter_id) in [str, unicode]:
+        parameter_id = [parameter_id]
+        
+        
+    parameter_map = {}
+        
+    for pid in parameter_id:
+        
+        parameter = db().get(dataset.sequence.Parameter, uuid(pid))
+
+        if parameter is None:
+            raise TypeError("parameter %s is not a valid parameter id" % pid)
+        
+        if parameter.sequence is not sequence:
+            raise TypeError("parameter %s is not a part of current dataset" % pid)
+            
+        parameter_map[pid] = parameter
+        
+        
+    query = "SELECT \n" + \
+            "  dataset_sequence_index.location, %(span)s%(columns)s \n" + \
+            "FROM dataset_sequence_index %(joins)s " + \
+            "\nWHERE \n" + \
+            "  dataset_sequence_index.sequence_id = '%(id)s'\n" + \
+            "ORDER BY \n  dataset_sequence_index.location\n"
+        
+    join = "\nLEFT JOIN dataset_sequence_point as %(rename)s ON \n" + \
+           "  %(rename)s.index_id = dataset_sequence_index.id AND \n" + \
+           "  %(rename)s.parameter_id = '%(id)s'"
+    
+    point_column = "\n  %(table)s.value, %(table)s.uncertainty_value, " + \
+                   "%(table)s.uncertainty_type"
+                   
+    point_table = "point_%(index)d"
+    
+    
+    add_columns = []
+    add_join = []
+    
+    for index, parameter in enumerate(parameter_id):
+        table_name = point_table % {"index": index}
+        add_columns.append(point_column % {"table": table_name})
+        add_join.append(join % {"rename": table_name, "id": unicode(parameter)})
+        
+    add_columns = ", ".join(add_columns)
+    add_join = " ".join(add_join)
+    
+    query = query % {
+        "span": "dataset_sequence_index.span, " if has_span else "",
+        "columns": add_columns, 
+        "joins": add_join,
+        "id": sequence.id
+    }
+            
+    result = db().execute(query).get_all()
+    
+    obj = {
+        "datatypes": [sequence.index_type.serialize()],
+        "parameters": [],
+        "index_marker_position": sequence.index_marker_location,
+        "index_marker_type": sequence.index_marker_type,
+        "data": [],
+        "uncertainty_value": [],
+        "uncertainty_type": [],
+        "rows": len(result),
+        "columns": len(parameter_id) + 1
+    }
+    
+    for parameter in parameter_id:
+        obj["datatypes"].append(parameter_map[parameter].type.serialize())
+        obj["parameters"].append(parameter_map[parameter].serialize())
+    
+    if has_span:
+        obj["span"] = []
+
+    # masks for picking out data from the result
+    data_mask = tuple(itertools.chain([0], range(2 if has_span else 1, len(parameter_id)*3, 3)))
+    uncertainty_value_mask = range(3 if has_span else 2, len(parameter_id)*3, 3)
+    uncertainty_type_mask = range(4 if has_span else 3, len(parameter_id)*3, 3)
+    uncertainty_type_table =  {1: "absolute", 2: "relative"}
+        
+    # populate from result
+    for index, row in enumerate(result):
+        if has_span:
+            obj["span"].append(row[1])
+        obj["data"].append([row[i] for i in data_mask])
+        obj["uncertainty_value"].append([row[i] for i in uncertainty_value_mask])
+        obj["uncertainty_type"].append(map(lambda x: x and uncertainty_type_table[x], [row[i] for i in uncertainty_type_mask]))
+    
+    return obj        
+        
     
 @apimethod.auth
-def add_metadata(sequence_id, parameter_id=None, index_id=None, datapoint_id=None):
+def add_metadata(dataset_id, parameter_id=None, index_id=None, datapoint_id=None):
+    sequence = sequence_from_dataset(dataset_id)
     pass
+    
+    
+# UTIL
+def sequence_from_dataset(dataset_id):
+    dataset_id = uuid(dataset_id)
+    return not_empty(db().find(dataset.sequence.Sequence, dataset.sequence.Sequence.dataset_id == dataset_id).one())
 
 """
     

@@ -35,6 +35,9 @@ class Model(Storm):
     def __storm_flushed__(self):
         if config().debug and "storm-save" not in config()["debug_exclude"]:
             debug(self.__class__.__name__, module = "storm-save", params = "\n" + pprint.pformat(self.__serialize__()))
+
+    def serialize(self):
+        return self.__serialize__()
     
     def __serialize__(self, nestedness = 0):
            
@@ -81,6 +84,7 @@ class Model(Storm):
             if isinstance(attr, dt):
                 obj = {}
                 for el in attr.keys():
+                    print "hey", el
                     obj[el] = self.__serialize_inner__(attr[el], nestedness + 1)
                 return obj
                 

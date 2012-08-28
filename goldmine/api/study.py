@@ -5,10 +5,13 @@
 Study functions 
 """
 
+from storm.locals import *
+
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
 from goldmine.controller import *
+
 
 @apimethod.auth
 def get(study_id):
@@ -17,7 +20,7 @@ def get(study_id):
     return not_empty(db().get(structure.Study, study_id)) 
     
 @apimethod.auth("study.create")
-def create(name, description):
+def create(name, description=None):
     s = structure.Study()
     s.name = name
     s.description = description
@@ -25,7 +28,7 @@ def create(name, description):
     return db().add(s)
 
 @apimethod.auth
-def list(standalone=False, owned_by_user=False):
+def all(standalone=False, owned_by_user=False):
     #FIXME: does user have access?
     if standalone:
         subselect = Select(structure.ActivityStudy.study_id, distinct=True)
@@ -53,14 +56,14 @@ def lineage(study_id):
     #FIXME: does user have access?
 
     study_id = uuid(study_id)
-    study = noempty(db().get(structure.Study, study_id))
+    study = not_empty(db().get(structure.Study, study_id))
 
     edges = []
     nodes = []
 
     for dataset in study.datasets:
         if dataset.parents.count() == 0:
-            subtree = _lineage_explore(study, dataset)
+            subtree = generate_lineage_tree(study, dataset)
             if subtree is not None:
                 edges.extend(subtree[0])
                 nodes.append(subtree[1])
@@ -88,14 +91,13 @@ def add_activity(study_id, activity_id):
     
 ######## PRIVATE STUFF ###############
 
-def _lineage_explore(study, node, parent=None, level=0):
+def generate_lineage_tree(study, node, parent=None, level=0):
 
     if node.study is not study:
         return None
 
     edges = []
     info = {}
-
     info[unicode(node.id)] = {"description": node.description, "level": level}    
     parents = list(node.parents)
     
@@ -111,7 +113,7 @@ def _lineage_explore(study, node, parent=None, level=0):
                                    
     for child in node.children:
         edges.append((unicode(node.id), unicode(child.id)))
-        child = _lineage_explore(study, child, node, level + 1)
+        child = generate_lineage_tree(study, child, node, level + 1)
         if child is not None:
             edges.extend(child[0])
             info.update(child[1])
