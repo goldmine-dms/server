@@ -14,7 +14,6 @@ except ImportError:
     import json
 
 # FIXME: does this belong here?
-from goldmine.db import db
 from goldmine import controller
 
     
@@ -25,11 +24,17 @@ class JSONRPCProtocol:
     def __init__(self, controller):
         self.controller = controller
 
-    def handleRequest(self, data):   
+    def handleRequest(self, data, env, shortpath):
         error = None
         id_ = None
         ctrl = self.controller()
-                
+        
+        if env["REQUEST_METHOD"] != "POST":
+            self.content_type = "text/html"
+            return ("Invalid request: Only POST queries allowed.", 400) 
+        else:
+            self.content_type = JSONRPCProtocol.content_type
+            
         try:
             
             # deserialize
@@ -106,7 +111,7 @@ class JSONRPCProtocol:
             ctrl.on_success()
            
             # send it to service layer as a string, 2nd parameter is error code
-            return (resultdata, None)
+            return (resultdata, 200)
                 
         except JSONRPCServiceException, e:
         
@@ -116,7 +121,7 @@ class JSONRPCProtocol:
             # rollback any transaction
             ctrl.on_failure()
                          
-            return (resultdata, e.error)  
+            return (resultdata, 200)  
             
         except Exception, e:
             print "== FIXME: Unhandled exception caught in JSONRPC: ", str(type(e)), e, " =="

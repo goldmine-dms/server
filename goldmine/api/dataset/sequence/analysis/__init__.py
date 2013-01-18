@@ -1,14 +1,22 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+from goldmine import *
+from goldmine.db import db
+from goldmine.models import *
+from goldmine.controller import *
+from goldmine.utils import nantonone
+
 import numpy
 
-def mean_binning(data, stepsize=None, numbins=None, dim=None, 
+@apimethod
+def meanbin(dataset, stepsize=None, numbins=None, dim=None, 
                        mastercolumn=0, mastermax=None, mastermin=None,
-                       nanthreshold=0.5, supersample=False):
+                       nanthreshold=0.5, original_if_supersample = False):
+                           
     """ Do a mean binnning of the dataset  
     
-    data:           a numpy 2d array
+    dataset:        a dataset
     stepsize:       the size of the steps in the new rebinning
                         (this mode centers the endpoints to get 
                         a fixed number bins)
@@ -18,11 +26,12 @@ def mean_binning(data, stepsize=None, numbins=None, dim=None,
     mastermax:      the maximum value needed
     mastermin:      the minimum value needed
     nanthreshold:   the amount of nans in a bin to make it a nan
-    supersample:    interpolate data between samples
     
     Stepsize or numbins must be provided.
     """
-
+    
+    data = numpy.array(dataset["data"], dtype=numpy.dtype('float'))
+    
     if data.ndim != 2:
         raise TypeError("Data must be 2-d")
 
@@ -36,8 +45,11 @@ def mean_binning(data, stepsize=None, numbins=None, dim=None,
         data = data.transpose()
         
     if stepsize is None and numbins is None:
-        raise Exception("Must provide either stepsize or numbins")
+        raise TypeError("Must provide either stepsize or numbins")
         
+    if stepsize and numbins:
+        raise TypeError("Must provide either stepsize or numbins, but not both")
+    
     # Sort data on mastercolumn
     sortorder = data.argsort(axis=0)[:, mastercolumn]
     data = data[sortorder,:]
@@ -50,19 +62,41 @@ def mean_binning(data, stepsize=None, numbins=None, dim=None,
     
     # Using a stepsize
     if stepsize is not None:
+        if type(stepsize) not in [float, int]:
+            raise TypeError("Stepsize must be a number")
         numbins = ((mastermax - mastermin)/stepsize) + 1
         extra = ((numbins - int(numbins))*stepsize)/2
         mastermin += extra
         mastermax -= extra
         numbins = int(numbins)
+    
+    # If trying to supersample
+    if numbins > datalen:
         
-    # If trying to supersample, and supersampling not activated,
-    # return the original dataset
-    if supersample is False and numbins > datalen:
-        if dim == 1:
-            data = data.transpose()
-        return data
-        
+        if original_if_supersample:
+
+            dataset["derived"] = True
+            
+            if "warnings" not in dataset:
+                dataset["warnings"] = []
+            dataset["warnings"].append("Data was not meanbined, as the sampling parameters would result in supersampled data")
+            
+            # limit
+            master = data[:, mastercolumn]
+            extract = numpy.all([(master > mastermin),(master <= mastermax)], 0)
+            data = data[extract,:]
+            
+            if dim == 1:
+                data = data.transpose()
+            
+            dataset["data"] = nantonone(data.tolist())
+            
+            return dataset
+
+        else:
+
+            raise TypeError("Specified parameters results in supersampling")
+    
     (bins, binwidth) = numpy.linspace(mastermin, mastermax, num=numbins, retstep=True)
     
     binhalf = binwidth/2.0
@@ -71,7 +105,7 @@ def mean_binning(data, stepsize=None, numbins=None, dim=None,
     
     outdata = numpy.empty([numbins,numpy.size(data, 1)])
     
-    
+
     localend = 0
     
     for [idx, bin] in enumerate(bins):
@@ -114,6 +148,8 @@ def mean_binning(data, stepsize=None, numbins=None, dim=None,
     if dim == 1:
         outdata = outdata.transpose()
 
-    return outdata
+    dataset["data"] = nantonone(outdata.tolist())
+    dataset["rows"] = len(dataset["data"])
+    dataset["derived"] = True
 
-
+    return dataset

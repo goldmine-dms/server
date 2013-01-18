@@ -9,6 +9,7 @@ from goldmine.models import auth
 exposed_methods = []
 
 API_NAMESPACE = "goldmine.api"
+PLUGIN_PREFIX = "plugin"
 
 class MethodNotFoundException(Exception):
     message = "Method not found"

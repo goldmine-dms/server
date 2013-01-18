@@ -149,7 +149,7 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncerta
     return db().add(idx)
 
 @apimethod.auth
-def get_data(dataset_id, parameter_id=None):
+def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
 
     """
     dataset_id:         id of the dataset
@@ -157,6 +157,12 @@ def get_data(dataset_id, parameter_id=None):
     parameter_id:       not set        - all parameters, in random order
                         UUID           - single parameter
                         [UUID, ...]    - specified parameters in order
+                        
+    limit_min:          not set        - no lower index limit
+                        int, float     - lower index limit specified by number
+                        
+    limit_max:          not set        - no upper index limit
+                        int, float     - upper index limit specified by number
     """
 
     #FIXME user has access
@@ -193,7 +199,7 @@ def get_data(dataset_id, parameter_id=None):
             "  dataset_sequence_index.location, %(span)s%(columns)s \n" + \
             "FROM dataset_sequence_index %(joins)s " + \
             "\nWHERE \n" + \
-            "  dataset_sequence_index.sequence_id = '%(id)s'\n" + \
+            "  dataset_sequence_index.sequence_id = '%(id)s'\n%(limit)s" + \
             "ORDER BY \n  dataset_sequence_index.location\n"
         
     join = "\nLEFT JOIN dataset_sequence_point as %(rename)s ON \n" + \
@@ -205,10 +211,16 @@ def get_data(dataset_id, parameter_id=None):
                    
     point_table = "point_%(index)d"
     
-    
+    limit = ""    
     add_columns = []
     add_join = []
     
+    if limit_min:
+        limit += "AND dataset_sequence_index.location > %f\n" % limit_min
+    
+    if limit_max:
+        limit += "AND dataset_sequence_index.location < %f\n" % limit_max    
+            
     for index, parameter in enumerate(parameter_id):
         table_name = point_table % {"index": index}
         add_columns.append(point_column % {"table": table_name})
@@ -221,26 +233,25 @@ def get_data(dataset_id, parameter_id=None):
         "span": "dataset_sequence_index.span, " if has_span else "",
         "columns": add_columns, 
         "joins": add_join,
-        "id": sequence.id
+        "id": sequence.id,
+        "limit": limit
     }
             
     result = db().execute(query).get_all()
     
     obj = {
-        "datatypes": [sequence.index_type.serialize()],
-        "parameters": [],
-        "index_marker_position": sequence.index_marker_location,
-        "index_marker_type": sequence.index_marker_type,
+        "current_parameters": [],
+        "headers": [sequence.index_type.signature()],
         "data": [],
-        "uncertainty_value": [],
-        "uncertainty_type": [],
+        "uncertainty": [],
+        "sequence": sequence.serialize(),
         "rows": len(result),
         "columns": len(parameter_id) + 1
     }
     
     for parameter in parameter_id:
-        obj["datatypes"].append(parameter_map[parameter].type.serialize())
-        obj["parameters"].append(parameter_map[parameter].serialize())
+        obj["current_parameters"].append(parameter_map[parameter].serialize(1))
+        obj["headers"].append(parameter_map[parameter].type.signature())
     
     if has_span:
         obj["span"] = []
@@ -256,8 +267,8 @@ def get_data(dataset_id, parameter_id=None):
         if has_span:
             obj["span"].append(row[1])
         obj["data"].append([row[i] for i in data_mask])
-        obj["uncertainty_value"].append([row[i] for i in uncertainty_value_mask])
-        obj["uncertainty_type"].append(map(lambda x: x and uncertainty_type_table[x], [row[i] for i in uncertainty_type_mask]))
+        obj["uncertainty"].append([row[i] for i in uncertainty_value_mask])
+        #obj["uncertainty_type"].append(map(lambda x: x and uncertainty_type_table[x], [row[i] for i in uncertainty_type_mask]))
     
     return obj        
         
@@ -289,31 +300,6 @@ def add_metadata(dsid, pid, mid, dpid, meta, user):
     return _add_metadata(meta, user, uuid(dsid), uuid(pid), uuid(mid), uuid(dpid))
 
 
-
-@needauth
-def get_raw(dsid, params, limits, with_ids, user):
-    #FIXME: Add authentication
-    dsid = uuid(dsid)
-    ds = noempty(db().get(Dataset, dsid))    
-    
-    if limits is None:
-        limits = (None, None)
-
-    return transpose(_get_raw_data(ds, params, limits, with_ids))
-
-@needauth
-def get_derived(dsid, cfg, user):
-    #FIXME: Add authentication
-    dsid = uuid(dsid)
-    ds = noempty(db().get(Dataset, dsid))        
-    return transpose(_get_derived_data(ds, cfg))
-
-@needauth
-def append(ds_id, measurements, parameters, user):
-    #FIXME: Add authentication 
-    ds_id = uuid(ds_id)
-    #FIXME: Check that parameters.keys() belong to ds
-    _append(ds_id, measurements, parameters, user)
     
     
 ######################## PRIVATE ###########################################

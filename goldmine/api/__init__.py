@@ -18,12 +18,22 @@ def authenticate(username, password):
     return auth.Token.create_token(u).id
 
 @apimethod
-def version():
+def info():
     """
-    Get version numbers for the service
+    Get information about the service
     """
+
+    c = config()
+
+    rv = {
+        "version": {"api": 2},
+        "server": {
+            "name": c["server"]["name"], 
+            "organisation": c["server"]["organisation"]
+        }
+    }
     
-    return {"api": 2}
+    return rv
 
 
 @apimethod.auth
@@ -167,3 +177,7 @@ def chain_with_input(inputdata, *chainspec):
             result = fn(params)
    
     return result
+
+
+    
+    

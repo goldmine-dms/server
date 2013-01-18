@@ -6,38 +6,52 @@ import os.path
 
 from goldmine import debug
 
+http_codes = {
+    200: "200 OK",
+    301: "301 Moved",
+    400: "400 Bad Request",
+    401: "401 Unauthorized",
+    404: "404 Not Found",
+    406: "406 Not Acceptable",
+    500: "500 Internal Server Error",
+    501: "501 Not Implemented"
+    
+}
+
 def HTTPService(services, server="simple", port=8080, address='0.0.0.0', webroot=None):
 
     def http_service(env, resp):
 
         path=env["PATH_INFO"]
-
-        if path not in services:
+        shortpath = path[1:].split("/")
+        shortpath = "/" + shortpath[0]
+                        
+        if shortpath not in services:
             if webroot is None:       
                 # If webroot is not defined, send a server error back
-                resp("501 Not Implemented", [("Content-type", "text/html")])
-                return ["<h1>501 Not Implemented</h1>",]
+                resp(http_codes[501], [("Content-type", "text/html")])
+                return ["<h1>HTTP " + http_codes[501] + "</h1>",]
             else:
                 filename = webroot + path
                 debug(env["REQUEST_METHOD"] + " " + path, params=env["REMOTE_ADDR"], module="webserver")
 
                 if os.path.isdir(filename):
                     if filename[-1] != "/":
-                        resp("301 Moved", [("Location", path + "/")])
-                        debug("301 Moved", params=filename, module="webserver")
-                        return ["<h1>301 Moved</h1>"]
+                        resp(http_codes[301], [("Location", path + "/")])
+                        debug(http_codes[301], params=filename, module="webserver")
+                        return ["<h1>HTTP "+http_codes[301]+"</h1>"]
                     filename = os.path.dirname(filename) + "/index.html"
                     
                 if not os.path.isfile(filename):
-                    resp("404 Not Found", [("Content-type", "text/html")])
-                    debug("404 File not found", params=filename, module="webserver")
-                    return ["<h1>404 Not Found</h1>",]
+                    resp(http_codes[404], [("Content-type", "text/html")])
+                    debug(http_codes[404], params=filename, module="webserver")
+                    return ["<h1>HTTP "+http_codes[404]+"</h1>",]
                 
                 (mime, enc) = mimetypes.guess_type(filename)
                 if mime is None:
                     mime = "application/octet-stream"
                     
-                resp("200 OK", [("Content-type", mime)])
+                resp(http_codes[200], [("Content-type", mime)])
                 
                 f = file(filename,'rb')
                 ret = [f.read(),]
@@ -46,18 +60,14 @@ def HTTPService(services, server="simple", port=8080, address='0.0.0.0', webroot
         
         else:
 
-            if env["REQUEST_METHOD"] != "POST":
-                resp("405 Method Not Allowed", [("Content-type", "text/html")])
-                return ["<h1>405 Method Not Allowed</h1>",]
-            
             try:
                 length=int(env.get('CONTENT_LENGTH', '0'))
             except ValueError:
                 length=0
 
             postbody=env['wsgi.input'].read(length)
-            (out, err) = services[path].handleRequest(postbody)
-            resp("200 OK", [("Content-type", services[path].content_type), ("Content-length", str(len(out)))])
+            (out, err) = services[shortpath].handleRequest(postbody, env, shortpath)
+            resp(http_codes[err], [("Content-type", services[shortpath].content_type), ("Content-length", str(len(out)))])
 
             return [out]
 

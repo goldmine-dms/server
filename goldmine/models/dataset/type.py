@@ -15,3 +15,7 @@ class Type(Model):
     name = Unicode()
     unit = Unicode()
     description = Unicode()
+    
+    
+    def signature(self):
+        return "%s (%s)" % (self.name, self.unit)

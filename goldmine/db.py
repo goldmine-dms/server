@@ -20,6 +20,7 @@ from goldmine.utils import singleton, group
 def generate_uuid(as_string=False):
     # as string is about 17 times faster than creating an UUID object
     # FIXME: generate valid UUID4s - not entirely random
+    # FIXME: switch to UUID1?
     if as_string:
         x = hex(getrandbits(128))[2:-1].rjust(32, "0")
         return x[:8]  + "-" + x[8:12] + "-" + x[12:16] + "-" + x[16:20] + "-" + x[20:]

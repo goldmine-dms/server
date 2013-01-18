@@ -36,8 +36,8 @@ class Model(Storm):
         if config().debug and "storm-save" not in config()["debug_exclude"]:
             debug(self.__class__.__name__, module = "storm-save", params = "\n" + pprint.pformat(self.__serialize__()))
 
-    def serialize(self):
-        return self.__serialize__()
+    def serialize(self, nestedness = 0):
+        return self.__serialize__(nestedness)
     
     def __serialize__(self, nestedness = 0):
            

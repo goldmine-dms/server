@@ -14,6 +14,9 @@ def methods():
 
 @apimethod
 def help(query):
+
+    # FIXME: fail less gracefully, with an exception
+
     rv = None
     for method in exposed_methods:
         if unicode(method.fqn[len(API_NAMESPACE)+1:]) == query:
