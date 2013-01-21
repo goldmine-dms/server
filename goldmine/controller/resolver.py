@@ -24,7 +24,7 @@ class Resolver:
         self.cache = {}
         self.nsmain = __import__(API_NAMESPACE, fromlist=("foo"))
         self.walk_ns(API_NAMESPACE, API_NAMESPACE, self.nsmain)
-        self.walk_plugins(config()["plugins"]["directory"], API_NAMESPACE, PLUGIN_PREFIX, True)
+        self.walk_plugins(config()["server"]["plugins"], API_NAMESPACE, PLUGIN_PREFIX, True)
 
         
     def walk_ns(self, namespace, mainnamespace, main):
@@ -64,7 +64,8 @@ class Resolver:
 
             elif module == "__init__.py":
                 ispkg = True
-                modules.append(([apiprefix, prefix], path))
+                # load __init__.py first to avoid Runtime errors
+                modules.insert(0, ([apiprefix, prefix], path))
 
             elif module.endswith(".py"):
                 modules.append(([apiprefix, prefix, module[:-3]], path))
@@ -79,7 +80,11 @@ class Resolver:
                 lookup_name = full_package_name[len(apiprefix)+1:] 
                 self.cache[lookup_name] = resolved_module
             except Exception, e:
-                debug("Exception in '%s' %s" % (full_package_name, repr(e)), module="plugin_load")
+
+                if isinstance(e, SyntaxError):
+                    debug("Syntax error in '%s' on line %d" % (full_package_name, e.lineno), module="plugin-load")
+                else:
+                    debug("Exception in '%s' %s" % (full_package_name, repr(e)), module="plugin-load")
 
                 # skip further imports from submodule 
                 ispkg = False
@@ -102,7 +107,7 @@ class Resolver:
             else:
                 resolved = getattr(self.nsmain, method)
         except Exception, e:
-            debug("Failure resolving call to function '%s'" % (orig_method), module="api_resolve")
+            debug("Failure resolving call to function '%s'" % (orig_method), module="api-resolve")
             ex = MethodNotFoundException()
             ex.message = "Method not found: %s" % orig_method
             raise ex

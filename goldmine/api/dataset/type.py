@@ -19,7 +19,13 @@ def get(type_id):
 
 
 @apimethod.auth("dataset.type.create")
-def create(name, unit, description=None):    
+def create(name, unit, description=None): 
+
+    rs = db().find(dataset.Type, dataset.Type.name == name)
+
+    if not rs.is_empty():
+        raise TypeError("Type already exists") 
+
     type = dataset.Type()
     type.name = name
     type.unit = unit
@@ -33,5 +39,5 @@ def all():
     
 @apimethod
 def search(keyword):
-    rs = db().find(dataset.Type, dataset.Type.name == search).order_by(dataset.Type.name)
+    rs = db().find(dataset.Type, dataset.Type.name == keyword).order_by(dataset.Type.name)
     return rs_to_list(rs)

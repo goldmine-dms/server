@@ -101,13 +101,14 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncerta
         if len(index) != 2:
             raise TypeError("index list must be two elements [index, span]")
         
-        index = index[0]
         span = index[1]
-        
+        index = index[0]
+                
     else:
         
         if index is None:
             raise TypeError("index location must be a number")
+
         span = None
         
     idx = dataset.sequence.Index()
@@ -276,6 +277,7 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
 @apimethod.auth
 def add_metadata(dataset_id, parameter_id=None, index_id=None, datapoint_id=None):
     sequence = sequence_from_dataset(dataset_id)
+    # FIXME missing implementation
     pass
     
     

@@ -5,6 +5,8 @@
 Dataset functions
 """
 
+import datetime
+
 from goldmine import *
 from goldmine.db import db
 from goldmine.models import *
@@ -39,6 +41,18 @@ def close(dataset_id):
         ds.closed = datetime.datetime.now()
     else:
         raise Exception("Dataset already closed")
+
+@apimethod.auth
+def purge(dataset_id):  
+    #FIXME: User has access?
+    dataset_id = uuid(dataset_id)
+    ds = not_empty(db().get(dataset.Dataset, dataset_id))
+    if ds.closed is None:
+        db().remove(ds)
+        #FIXME: cascade
+    else:
+        raise Exception("Cannot delete closed datasets")
+        
         
 @apimethod
 def supported_dataset_types():

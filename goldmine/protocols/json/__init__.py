@@ -108,8 +108,11 @@ class JSONRPCProtocol:
                  raise JSONRPCInternalError("Serialization error")  
                  
             # commit the transaction if successful
-            ctrl.on_success()
-           
+            try:
+                ctrl.on_success()
+            except Exception, e:
+                raise JSONRPCInternalError("Commit failed: " + repr(e))
+
             # send it to service layer as a string, 2nd parameter is error code
             return (resultdata, 200)
                 

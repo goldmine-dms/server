@@ -23,11 +23,11 @@ class Controller:
         except AttributeError, e2:
             raise MethodNotFoundException()
         except UnauthorizedException, e3:
-            debug("Unauthorized call to %s" % (method), module="api_resolve")
+            debug("Unauthorized call to %s" % (method), module="api-resolve")
             raise
             
     def execute(self, method, *args, **kwargs):    
-        debug("%s.%s%s" % (method.__module__, method.__name__, str(args)), module="api_execute")
+        debug("%s.%s%s" % (method.__module__, method.__name__, str(args)), module="api-execute")
         return method(*args, **kwargs)
 
     def on_success(self):
