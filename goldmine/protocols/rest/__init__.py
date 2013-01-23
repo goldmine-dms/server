@@ -53,26 +53,26 @@ class RESTProtocol:
             # resolve method
             try:
                 resolved_method = ctrl.get_method(method)                
-            except controller.MethodNotFoundException:
-                raise RESTMethodNotFound("Method Not Found")         # pre-run not found
+            except controller.MethodNotFoundException, e0:
+                raise RESTMethodNotFound(e0.message)                        # pre-run not found
             
-            except controller.UnauthorizedException:                    # pre-run unauthorized
-                raise RESTUnauthorized("Unauthorized")
+            except controller.UnauthorizedException, e1:                    # pre-run unauthorized
+                raise RESTUnauthorized(e1.message)
                 
             # execute method
             try:
-                if isinstance(params, dict):                            # kwargs
+                if isinstance(params, dict):                                # kwargs
                     result = ctrl.execute(resolved_method, **params)
-                else:                                                   # args
+                else:                                                       # args
                     result = ctrl.execute(resolved_method, *params)
-            except TypeError, e:
-                raise RESTInvalidParams("Invalid Params: " + e.args[0])
-            except controller.InvalidRequest, e:
-                raise RESTInvalidRequest("Invalid Request: " + e.args[0])
+            except TypeError, e0:
+                raise RESTInvalidParams("Invalid Params: " + e0.args[0])
+            except controller.InvalidRequest, e1:
+                raise RESTInvalidRequest("Invalid Request: " + e1.args[0])
             except controller.MethodNotFoundException, e2:                  # runtime not found
                 raise RESTMethodNotFound(e2.message)                
-            except controller.UnauthorizedException:                    # runtime unauthorized
-                raise RESTUnauthorized("Unauthorized") 
+            except controller.UnauthorizedException, e3:                    # runtime unauthorized
+                raise RESTUnauthorized(e3.message) 
                 
             except Exception, e:
                 print "== Exception caught: ", str(type(e)), e, " =="

@@ -63,11 +63,10 @@ class JSONRPCProtocol:
             # resolve method
             try:
                 resolved_method = ctrl.get_method(method)                
-            except controller.MethodNotFoundException:
-                raise JSONRPCMethodNotFound("Method Not Found")         # pre-run not found
-            
-            except controller.UnauthorizedException:                    # pre-run unauthorized
-                raise JSONRPCUnauthorized("Unauthorized")
+            except controller.MethodNotFoundException, e0:
+                raise JSONRPCMethodNotFound(e0.message)                  # pre-run not found
+            except controller.UnauthorizedException, e1:                 # pre-run unauthorized
+                raise JSONRPCUnauthorized(e1.message)
                 
             # execute method
             try:
@@ -75,14 +74,14 @@ class JSONRPCProtocol:
                     result = ctrl.execute(resolved_method, **params)
                 else:                                                   # args
                     result = ctrl.execute(resolved_method, *params)
-            except TypeError, e:
-                raise JSONRPCInvalidParams("Invalid Params: " + e.args[0])
-            except controller.InvalidRequest, e:
-                raise JSONRPCInvalidRequest("Invalid Request: " + e.args[0])
+            except TypeError, e0:
+                raise JSONRPCInvalidParams("Invalid Params: " + e0.args[0])
+            except controller.InvalidRequest, e1:
+                raise JSONRPCInvalidRequest("Invalid Request: " + e1.args[0])
             except controller.MethodNotFoundException, e2:                  # runtime not found
                 raise JSONRPCMethodNotFound(e2.message)                
-            except controller.UnauthorizedException:                    # runtime unauthorized
-                raise JSONRPCUnauthorized("Unauthorized") 
+            except controller.UnauthorizedException, e3:                    # runtime unauthorized
+                raise JSONRPCUnauthorized(e3.message) 
                 
             except Exception, e:
                 print "== Exception caught: ", str(type(e)), e, " =="

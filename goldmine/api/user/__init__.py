@@ -10,11 +10,17 @@ from goldmine.db import db
 from goldmine.models import *
 from goldmine.controller import *
 
-@apimethod.auth(who="uuid")
-def get(who):
-    """ Get the requested user struct """
-    who = uuid(who)
-    return db().get(auth.User, who)
+@apimethod.auth
+def get(user_id):
+    """ Get user struct for user_id """
+    user_id = uuid(user_id, user)
+    return db().get(auth.User, user_id)
+
+@apimethod.auth
+def all():
+    """ All users """
+    rs = db().find(auth.User)
+    return rs_to_list(rs)
 
 @apimethod.auth
 def whoami():
@@ -33,4 +39,3 @@ def create(username, fullname, email, password):
     u.set_password(password)
 
     return db().add(u)
-

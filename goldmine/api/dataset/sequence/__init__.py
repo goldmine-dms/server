@@ -15,19 +15,22 @@ import itertools
 
 @apimethod.auth
 def get(dataset_id):
-    #FIXME: User has access?
-    return sequence_from_dataset(dataset_id)
-    
+    sequence = sequence_from_dataset(dataset_id, user)
+    check_access(user, sequence.dataset.study_id, "read")
+    return sequence
+
 @apimethod.auth("dataset.sequence.create")
 def create(study_id, description, index_type_id, index_marker_type="point", index_marker_location="center", dataset_forked_from=None):
     
-    study_id = uuid(study_id)
-    index_type_id = uuid(index_type_id)
+    study_id = uuid(study_id, user)
+    check_access(user, study_id, "write")
+
+    index_type_id = uuid(index_type_id, user)
     study = not_empty(db().get(structure.Study, study_id))
     index_type = not_empty(db().get(dataset.Type, index_type_id))
 
-    #FIXME unclean
-    
+
+    #FIXME unclean    
     parent = resolver.get("dataset.create", user)(u"sequence", study, description, dataset_forked_from)
         
     sequence = dataset.sequence.Sequence()
@@ -41,13 +44,14 @@ def create(study_id, description, index_type_id, index_marker_type="point", inde
 
 @apimethod.auth
 def add_parameter(dataset_id, type_id, uncertainty_value=None, uncertainty_type="absolute", storage="float"):
-    #FIXME: User has access?
-    sequence = sequence_from_dataset(dataset_id)
-    
+
+    sequence = sequence_from_dataset(dataset_id, user)
+    check_access(user, sequence.dataset.study_id, "write")
+
     if sequence.dataset.closed:
         raise Exception("Dataset is closed")
     
-    type_id = uuid(type_id)
+    type_id = uuid(type_id, user)
     type = not_empty(db().get(dataset.Type, type_id))
     
     param = dataset.sequence.Parameter()
@@ -86,13 +90,12 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncerta
                                         for corresponding parameter ids
     """
                     
-    sequence = sequence_from_dataset(dataset_id)
-    
+    sequence = sequence_from_dataset(dataset_id, user)
+    check_access(user, sequence.dataset.study_id, "write")
+
     if sequence.dataset.closed:
         raise Exception("Dataset is closed")
-    
-    # FIXME user has access?
-        
+            
     if type(index) in [tuple, list]:
         
         if sequence.index_marker_type != "span":
@@ -165,11 +168,10 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
     limit_max:          not set        - no upper index limit
                         int, float     - upper index limit specified by number
     """
+    
+    sequence = sequence_from_dataset(dataset_id, user)
+    check_access(user, sequence.dataset.study_id, "read")
 
-    #FIXME user has access
-    
-    sequence = sequence_from_dataset(dataset_id)
-    
     has_span = sequence.index_marker_type == "span"
         
     if parameter_id is None:
@@ -276,15 +278,25 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
     
 @apimethod.auth
 def add_metadata(dataset_id, parameter_id=None, index_id=None, datapoint_id=None):
-    sequence = sequence_from_dataset(dataset_id)
+    sequence = sequence_from_dataset(dataset_id, user)
+    check_access(user, sequence.dataset.study_id, "write")
+
     # FIXME missing implementation
     pass
     
     
 # UTIL
-def sequence_from_dataset(dataset_id):
-    dataset_id = uuid(dataset_id)
+def sequence_from_dataset(dataset_id, user):
+    dataset_id = uuid(dataset_id, user)
     return not_empty(db().find(dataset.sequence.Sequence, dataset.sequence.Sequence.dataset_id == dataset_id).one())
+
+
+def check_access(user, study_id, role, throw=True):
+    if not resolver.get("study.access", user)(study_id, min_role=role):
+        if throw: raise UnauthorizedException("You are not authorized to view this sequence")
+        return False
+    return True
+
 
 """
     

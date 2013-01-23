@@ -4,6 +4,7 @@
 """
 Project functions
 """
+from storm.locals import *
 
 from goldmine import *
 from goldmine.db import db
@@ -12,8 +13,7 @@ from goldmine.controller import *
 
 @apimethod.auth
 def get(project_id):
-    project_id = uuid(project_id)
-        
+    project_id = uuid(project_id, user)
     return not_empty(db().get(structure.Project, project_id))
     
 @apimethod.auth
@@ -23,10 +23,12 @@ def all():
 
 @apimethod.auth
 def search(keyword):
-    rs = db().find(structure.Project, structure.Project.name == keyword).order_by(structure.Project.name)
+    keyword = "%%%s%%" % keyword
+    rs = db().find(structure.Project, Or(structure.Project.name.like(keyword), structure.Project.description.like(keyword)))
+    rs = rs.order_by(structure.Project.name)
     return rs_to_list(rs)
     
-@apimethod.auth("project.create", location="location")
+@apimethod.auth("project.create")
 def create(name, description=None, location={}):
     
     project = structure.Project()

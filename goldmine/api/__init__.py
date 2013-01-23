@@ -6,7 +6,7 @@ from goldmine.db import db
 from goldmine.models import *
 from goldmine.controller import *
 
-@apimethod(username="string", password="string")
+@apimethod
 def authenticate(username, password):
     """ 
     Authenticate a user 

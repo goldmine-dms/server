@@ -5,6 +5,7 @@
 """
 Dataset.Type functions
 """
+from storm.locals import *
 
 from goldmine import *
 from goldmine.db import db
@@ -12,9 +13,9 @@ from goldmine.models import *
 from goldmine.controller import *
 
 
-@apimethod
+@apimethod.auth
 def get(type_id):
-    type_id = uuid(type_id)
+    type_id = uuid(type_id, user)
     return not_empty(db().get(dataset.Type, type_id))
 
 
@@ -39,5 +40,7 @@ def all():
     
 @apimethod
 def search(keyword):
-    rs = db().find(dataset.Type, dataset.Type.name == keyword).order_by(dataset.Type.name)
+    keyword = "%%%s%%" % keyword
+    rs = db().find(dataset.Type, Or(dataset.Type.name.like(keyword), dataset.Type.description.like(keyword)))
+    rs = rs.order_by(dataset.Type.name)
     return rs_to_list(rs)

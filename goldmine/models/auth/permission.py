@@ -1,18 +1,24 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+import datetime
+
 from storm.locals import *
 from goldmine.models import *
 from goldmine.db import generate_uuid
 
 class Permission(Model):
     
-    __export__ = ["id", ("study", "study_id"), ("group", "group_id"), "name", "identifier"]
+    __storm_table__ = "permission"
+    __export__ = [("user", "user_id"), ("granted_by", "granted_by_id"), "granted", "identifier"]
     __module__ = "goldmine.models.auth"
+    __storm_primary__ = "user_id", "identifier"
     
-    study_id = UUID()
-    group_id = UUID()
+    user_id = UUID()
+    granted_by_id = UUID()
+    granted =  DateTime(default_factory=datetime.datetime.now)
     identifier = Unicode()
     
-    study = Reference(study_id, "structure.Study.id")
-    group = Reference(group_id, "auth.Group.id")
+    user = Reference(user_id, "auth.User.id")
+    granted_by = Reference(granted_by_id, "auth.User.id")
+

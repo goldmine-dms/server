@@ -52,7 +52,6 @@ create table lineage (
     unique (from_dataset_id, to_dataset_id)
 );
 
-
 -- DATASET
 drop table if exists dataset;
 create table dataset (
@@ -158,7 +157,7 @@ create table dataset_sequence_point (
     index_id uuid not null, 
     "value" float not null, 
     uncertainty_value float,
-    uncertainty_type int
+    uncertainty_type int                              --- die soon
 );
 
 create index dataset_sequence_point_parameter on dataset_sequence_point(parameter_id);
@@ -204,24 +203,43 @@ create table "token" (
 
 drop table if exists "group";
 create table "group" (
-    id uuid primary key, 
-    parent_id uuid,
-    name varchar(50) 
+    "id" uuid primary key, 
+    "parent_id" uuid,
+    "name" varchar(50) 
 );
 
-drop table if exists group_member;
-create table group_member (
-    user_id integer not null, 
-    group_id integer not null,
-    primary key(user_id, group_id)
+drop table if exists "group_member";
+create table "group_member" (
+    "user_id" uuid not null, 
+    "group_id" uuid not null,
+    primary key("user_id", "group_id")
 );
 
 drop table if exists permission;
 create table permission (
-    id uuid primary key, 
-    study_id uuid, 
-    identifier varchar(255), 
-    group_id uuid
+    user_id uuid, 
+    granted_by_id uuid not null,
+    granted timestamp not null,
+    identifier varchar(255),
+    primary key("user_id", "identifier")
+);
+
+drop table if exists study_group;
+create table study_group (
+    "study_id" uuid not null, 
+    "group_id" uuid not null,
+    "role" int not null,
+    primary key("study_id", "group_id")
+);
+
+drop table if exists favorite;
+create table favorite (
+    "id" uuid primary key,
+    "name" varchar(255) not null,
+    "user_id" uuid not null,
+    "ref_id" uuid not null,
+    "ref_type" int not null,
+    unique("name", "user_id")
 );
 
 insert into "user" (id, username, fullname, email, password, userlevel) values ('12345678-90ab-cdef-1234-567890abcdef', 'admin', 'Database Administrator', 'user@example.com', '$2a$12$3xJErTM6NcJSNKSFP5Chxe9O3XnVmA6V8xXpTD2Jr8Srrst.np4AS', 10);

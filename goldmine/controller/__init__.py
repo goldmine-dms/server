@@ -23,7 +23,6 @@ class InvalidRequest(Exception):
 class apimethod:
     
     def __init__(self, method=None, *args, **kwargs):
-    
         self.method = method
         self.auth_required = False
         self.permission = None
@@ -59,14 +58,18 @@ class apimethod:
         return self.as_user(user)
         
     def check_access(self, user=None):
-                   
+
         if (self.auth_required or self.permission) and user is None:
             raise UnauthorizedException("Method requires authenticated user")
 
+        if user and user.is_admin():
+            return
+        
         if self.permission:
-            if user.is_admin():
-                return
-            print "FIXME: PERMISSION ",
+            for perm in self.permission:
+                if not _get("user.permission.access", user)(unicode(perm)):
+                    raise UnauthorizedException("Method requires permission: %s" % perm)
+
         
     def __call__(self, *args, **kwargs):
     
@@ -105,14 +108,30 @@ def default(val, defaultval):
     else:
         return val
         
-def uuid(s):
+def uuid(s, user=None):
+
+    if type(s) == _uuid.UUID:
+        return s
+
     if s is None:
         return None
+
+    if isinstance(s, unicode) and s.startswith("#"):
+        
+        if user is None:
+            raise TypeError("Favorite is not availiable for this request")
+
+        s = s[1:]
+        s = _get("favorite.resolve", user)(s)
+        
+        if not s:
+            raise TypeError("Unknown favorite")
+            
     try:
-        return _uuid.UUID(s)  
+        return  _uuid.UUID(s)  
     except:
         raise TypeError("Malformed UUID")
   
 # import into namespace
-from goldmine.controller.resolver import Resolver
+from goldmine.controller.resolver import Resolver, get as _get
 from goldmine.controller.controller import Controller
