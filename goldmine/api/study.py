@@ -163,19 +163,27 @@ def access(study_id, user_id=None, min_role="read"):
     the_user = not_empty(db().get(auth.User, user_id))
 
     if the_user.is_admin():
-        return True
+        return "!admin"
 
     study = not_empty(db().get(structure.Study, study_id))
 
     if the_user == study.owner:
-        return True
+        return "!owner"
 
     checker = resolver.get("group.has_member", user)
 
+    max_role = 0
+    max_role_name = None
     for sg in study.access:
         if sg.ROLEMAP[sg.role] >= min_role:         # requested role available in group
             if checker(sg.group_id, user_id):       # check for user is member of group
-                return True
+                if max_role < sg.ROLEMAP[sg.role]:
+                    max_role_name = sg.role
+                    max_role = sg.ROLEMAP[sg.role]
+
+    if max_role_name:
+        return max_role_name
+
     return False
 
 ######## PRIVATE STUFF ###############

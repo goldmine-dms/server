@@ -44,19 +44,21 @@ def to_ascii(dataset, commentchar="#"):
             columnmask.append("%12d")
   
     ascii = ""
-    data = []
-    
+    data = []  
 
     for s in metadata:
         ascii += "%s %s\n" % (commentchar, s)
         
+
+
     for d in dataset["data"]:
         row = []
         for idx, column in enumerate(d):
             row.append(columnmask[idx] % column)
         data.append(row)
 
-    for d in data:
-        ascii += (" ".join(d) + "\n")
+    # optimized string concat
+    # method 6 from http://www.skymind.com/~ocrow/python_string/
+    ascii += "\n".join([" ".join(line) for line in data])
 
     return ascii

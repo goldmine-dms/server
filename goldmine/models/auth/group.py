@@ -41,7 +41,7 @@ class StudyGroup(Model):
     __module__ = "goldmine.models.auth"
     __storm_primary__ = "study_id", "group_id"
 
-    __export__ = [("study", "study_id"), ("group", "group_id"), "role"]
+    __export__ = [("study", "study_id"), "group", "role"]
 
     ROLEMAP = {"read": 1, "write": 2, "admin": 3}
     

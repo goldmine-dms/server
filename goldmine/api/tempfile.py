@@ -79,7 +79,6 @@ def all():
 
 @apimethod.auth
 def create(data, filename):
-    
     """
     Create a temporary file for the user
     
@@ -93,7 +92,6 @@ def create(data, filename):
     The filename is modified if it contains illegal characters outside
     of the sets: [a-z], [A-Z], [0-9] and ("-", "_", ".")
     """
-    
 
     success_files = []
     

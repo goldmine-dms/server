@@ -16,12 +16,22 @@ from goldmine.utils import debugger as _debugger
 def restart():
     """ 
     Restart the server
-    FIXME: Only works with CherryPy
+    Only works with CherryPy/HTTP
     """
-          
-    import sys, os
-    python = sys.executable
-    os.execl(python, python, * sys.argv)
+    c = config()
+
+    try:
+        engine = c["services"]["http"]["engine"]
+        if engine == "cherrypy":
+            import sys, os
+            python = sys.executable
+            os.execl(python, python, * sys.argv)
+        else:
+            return "Cannot restart %s" % engine
+
+    except KeyError: 
+        return "Cannot restart this server type"
+
 
 @apimethod.auth("admin.debugger")
 def debugger():

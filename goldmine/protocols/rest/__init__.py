@@ -13,6 +13,7 @@ class RESTProtocol:
     content_type = "application/octet-stream"
 
     def __init__(self, controller):
+        controller() # 
         self.controller = controller
 
     def handleRequest(self, data, env, shortpath):

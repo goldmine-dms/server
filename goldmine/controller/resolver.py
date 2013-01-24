@@ -119,6 +119,7 @@ class Resolver:
 # get function with user context
 def get(method, user):
     fn = Resolver().resolve(method)
+    debug("Internal resolve to function '%s'" % (method), module="api-resolve-internal")
     if isinstance(fn, apimethod):
         return fn.as_user(user)
     else:

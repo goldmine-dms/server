@@ -64,7 +64,7 @@ def add_parameter(dataset_id, type_id, uncertainty_value=None, uncertainty_type=
     return db().add(param)
     
 @apimethod.auth
-def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncertainty_type = "absolute"):
+def add_data(dataset_id, index, parameter_id, value, uncertainty=None):
     """
     Add a single measurement, not optimized for mass insert
     
@@ -85,9 +85,6 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncerta
                         [number, ...] = ordered list of uncertainties 
                                         for corresponding parameter ids
                                     
-    uncertainty_type:   str = uncertainty type ("absolute" or "relative")
-                        [str, ...]    = ordered list of uncertainty types
-                                        for corresponding parameter ids
     """
                     
     sequence = sequence_from_dataset(dataset_id, user)
@@ -123,7 +120,6 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncerta
         parameter_id = [parameter_id]
         value = [value]
         uncertainty = [uncertainty]
-        uncertainty_type = [uncertainty_type]
 
     for i, pid in enumerate(parameter_id):
         p = dataset.sequence.Point()
@@ -142,11 +138,6 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty = None, uncerta
         
         if uncertainty is not None and uncertainty[i] is not None:
             p.uncertainty_value = uncertainty[i]
-            
-        if type(uncertainty_type) in [list, tuple]:
-            p.uncertainty_type = uncertainty_type[i]
-        else:
-            p.uncertainty_type = uncertainty_type
             
         db().add(p)
     
@@ -209,9 +200,7 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
            "  %(rename)s.index_id = dataset_sequence_index.id AND \n" + \
            "  %(rename)s.parameter_id = '%(id)s'"
     
-    point_column = "\n  %(table)s.value, %(table)s.uncertainty_value, " + \
-                   "%(table)s.uncertainty_type"
-                   
+    point_column = "\n  %(table)s.value, %(table)s.uncertainty_value"                   
     point_table = "point_%(index)d"
     
     limit = ""    
@@ -259,23 +248,27 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
     if has_span:
         obj["span"] = []
 
-    # masks for picking out data from the result
-    data_mask = tuple(itertools.chain([0], range(2 if has_span else 1, len(parameter_id)*3, 3)))
-    uncertainty_value_mask = range(3 if has_span else 2, len(parameter_id)*3, 3)
-    uncertainty_type_mask = range(4 if has_span else 3, len(parameter_id)*3, 3)
-    uncertainty_type_table =  {1: "absolute", 2: "relative"}
-        
+    # masks for picking out data mapped to the SQL command
+    # data at parameter columns
+    data_mask = range(2 if has_span else 1, (len(parameter_id)+1)*2, 2)
+
+    # data at index column
+    data_mask.insert(0, 0)
+    
     # populate from result
-    for index, row in enumerate(result):
+    # FIXME looks slow, consider moving to numpy
+    debug("(dataset.sequence.get_data) Enter list populate", module="fixme")
+    for row in result:
         if has_span:
             obj["span"].append(row[1])
         obj["data"].append([row[i] for i in data_mask])
-        obj["uncertainty"].append([row[i] for i in uncertainty_value_mask])
-        #obj["uncertainty_type"].append(map(lambda x: x and uncertainty_type_table[x], [row[i] for i in uncertainty_type_mask]))
-    
+        obj["uncertainty"].append([row[i+1] for i in data_mask[1:]])
+    debug("(dataset.sequence.get_data) Exit list populate", module="fixme")
+
+
     return obj        
         
-    
+
 @apimethod.auth
 def add_metadata(dataset_id, parameter_id=None, index_id=None, datapoint_id=None):
     sequence = sequence_from_dataset(dataset_id, user)

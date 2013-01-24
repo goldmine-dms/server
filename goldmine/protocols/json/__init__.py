@@ -22,6 +22,7 @@ class JSONRPCProtocol:
     content_type = "application/json-rpc"
 
     def __init__(self, controller):
+        controller()
         self.controller = controller
 
     def handleRequest(self, data, env, shortpath):

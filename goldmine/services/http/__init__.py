@@ -87,4 +87,24 @@ def HTTPService(services, server="simple", port=8080, address='0.0.0.0', webroot
             wserver.start()
         except KeyboardInterrupt:
             wserver.stop()
-    
+
+    elif server == "tornado":
+
+        import tornado.httpserver
+        import tornado.wsgi
+
+        container = tornado.wsgi.WSGIContainer(http_service)
+
+        http_server = tornado.httpserver.HTTPServer(container)
+        http_server.bind(port, address)
+        http_server.start(0)
+        
+        iloop = tornado.ioloop.IOLoop.instance()
+
+        try:
+            iloop.start()
+        except KeyboardInterrupt:
+            iloop.stop()
+
+    else:
+        print "Invalid HTTP server selected, exiting"

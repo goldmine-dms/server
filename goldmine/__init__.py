@@ -16,7 +16,7 @@ class ConfigurationError(Exception):
 @singleton
 class config(dict):
 
-    def __init__(self, filename="config.ini", customized={}):
+    def __init__(self, filename, customized={}):
     
         if not os.path.exists(filename):
             raise ConfigurationError("Configuration file does not exist")

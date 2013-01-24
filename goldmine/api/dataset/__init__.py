@@ -83,7 +83,6 @@ def do_fork(from_dataset, to_dataset, user, fork_type="derived"):
     lineage.fork_type = fork_type
     return db().add(lineage)
 
-
 def create(type, study, description, dataset_forked_from=None, fork_type="derived"):
 
     check_access(user, study.id, "write")

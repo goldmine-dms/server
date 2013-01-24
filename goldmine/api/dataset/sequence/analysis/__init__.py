@@ -38,9 +38,7 @@ def meanbin(dataset, stepsize=None, numbins=None, dim=None,
     # if autodim, find largest dimension
     if dim is None:
         dim = 0 if numpy.size(data, 0) > numpy.size(data, 1) else 1
-        
-    datalen = numpy.size(data, dim)
-        
+                
     if dim == 1:
         data = data.transpose()
         
@@ -60,6 +58,15 @@ def meanbin(dataset, stepsize=None, numbins=None, dim=None,
     if mastermax is None:
         mastermax = data[-1,0]
     
+    # FIXME datalen was not defined
+    # the extract metod seems to be to slow for large datasets
+    # maybe consider removing min max extractors
+    
+    master = data[:, mastercolumn]
+    extract = numpy.all([(master > mastermin),(master <= mastermax)], 0)
+    data = data[extract,:]
+    datalen = numpy.size(data, dim)
+
     # Using a stepsize
     if stepsize is not None:
         if type(stepsize) not in [float, int]:
@@ -85,7 +92,7 @@ def meanbin(dataset, stepsize=None, numbins=None, dim=None,
             master = data[:, mastercolumn]
             extract = numpy.all([(master > mastermin),(master <= mastermax)], 0)
             data = data[extract,:]
-            
+           
             if dim == 1:
                 data = data.transpose()
             
