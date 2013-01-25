@@ -39,3 +39,15 @@ def create(username, fullname, email, password):
     u.set_password(password)
 
     return db().add(u)
+
+@apimethod.auth("user.change_userlevel")
+def change_userlevel(user_id, level):
+    user_id = uuid(user_id, user)
+    selected_user = db().get(auth.User, user_id)
+    selected_user.userlevel = level
+    return selected_user
+
+@apimethod.auth
+def change_password(password):
+    user.set_password(password)
+

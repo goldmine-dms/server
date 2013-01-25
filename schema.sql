@@ -156,8 +156,7 @@ create table dataset_sequence_point (
     parameter_id uuid not null, 
     index_id uuid not null, 
     "value" float not null, 
-    uncertainty_value float,
-    uncertainty_type int                              --- die soon
+    uncertainty_value float
 );
 
 create index dataset_sequence_point_parameter on dataset_sequence_point(parameter_id);
