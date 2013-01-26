@@ -163,7 +163,7 @@ def get_data(dataset_id, parameter_index=None, limit_min=None, limit_max=None):
         for parameter in sequence.parameters:
             parameter_index.append(parameter.index)
             
-    elif type(parameter_index) in [str, unicode]:
+    elif type(parameter_index) is int:
         parameter_index = [parameter_index]
             
     parameter_map = {}
@@ -186,7 +186,7 @@ def get_data(dataset_id, parameter_index=None, limit_min=None, limit_max=None):
         
     join = "\nLEFT JOIN dataset_sequence_point as %(rename)s ON \n" + \
            "  %(rename)s.index_id = dataset_sequence_index.id AND \n" + \
-           "  %(rename)s.parameter_index = %(id)s"
+           "  %(rename)s.parameter_index = %(index)s"
     
     point_column = "\n  %(table)s.value, %(table)s.uncertainty_value"                   
     point_table = "point_%(index)d"
