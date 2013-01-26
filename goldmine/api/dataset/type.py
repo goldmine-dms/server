@@ -20,7 +20,7 @@ def get(type_id):
 
 
 @apimethod.auth("dataset.type.create")
-def create(name, unit, description=None): 
+def create(name, unit, description=None, uniname=None): 
 
     rs = db().find(dataset.Type, dataset.Type.name == name)
 
@@ -31,6 +31,7 @@ def create(name, unit, description=None):
     type.name = name
     type.unit = unit
     type.description = description
+    type.uniname = uniname
     return db().add(type)
 
 @apimethod
