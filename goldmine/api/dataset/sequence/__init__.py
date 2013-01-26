@@ -55,6 +55,7 @@ def add_parameter(dataset_id, type_id, uncertainty_value=None, uncertainty_type=
     type = not_empty(db().get(dataset.Type, type_id))
     
     param = dataset.sequence.Parameter()
+    param.index = len(sequence.parameters) + 1
     param.type = type
     param.sequence = sequence
     param.storage = storage
@@ -64,7 +65,7 @@ def add_parameter(dataset_id, type_id, uncertainty_value=None, uncertainty_type=
     return db().add(param)
     
 @apimethod.auth
-def add_data(dataset_id, index, parameter_id, value, uncertainty=None):
+def add_data(dataset_id, index, parameter_index, value, uncertainty=None):
     """
     Add a single measurement, not optimized for mass insert
     
@@ -73,8 +74,8 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty=None):
     index:              number = index location
                         [number, number] = index location, index span
                     
-    parameter_id:       UUID = parameter id
-                        [UUID, ...]   = ordered list of parameter ids
+    parameter_index:    int = parameter index
+                        [int, ...]   = ordered list of parameter index
                                         for corresponding values
                                   
     value:              number = value
@@ -116,23 +117,15 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty=None):
     idx.span = span
     idx.sequence = sequence
         
-    if type(parameter_id) in [str, unicode]:
-        parameter_id = [parameter_id]
+    if type(parameter_index) in [str, unicode]:
+        parameter_index = [parameter_index]
         value = [value]
         uncertainty = [uncertainty]
 
-    for i, pid in enumerate(parameter_id):
+    for i, pi in enumerate(parameter_index):
         p = dataset.sequence.Point()
         
-        parameter = db().get(dataset.sequence.Parameter, uuid(pid))
-        
-        if parameter is None:
-            raise TypeError("parameter %s is not a valid parameter id" % pid)
-        
-        if parameter.sequence is not sequence:
-            raise TypeError("parameter %s is not a part of current dataset" % pid)
-        
-        p.parameter = parameter
+        p.parameter_index = pi
         p.index = idx
         p.value = value[i]
         
@@ -144,14 +137,14 @@ def add_data(dataset_id, index, parameter_id, value, uncertainty=None):
     return db().add(idx)
 
 @apimethod.auth
-def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
+def get_data(dataset_id, parameter_index=None, limit_min=None, limit_max=None):
 
     """
     dataset_id:         id of the dataset
     
-    parameter_id:       not set        - all parameters, in random order
-                        UUID           - single parameter
-                        [UUID, ...]    - specified parameters in order
+    parameter_index:    not set        - all parameters
+                        int           -  single parameter
+                        [int, ...]    - specified parameters in order
                         
     limit_min:          not set        - no lower index limit
                         int, float     - lower index limit specified by number
@@ -165,26 +158,21 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
 
     has_span = sequence.index_marker_type == "span"
         
-    if parameter_id is None:
-        parameter_id = []
+    if parameter_index is None:
+        parameter_index = []
         for parameter in sequence.parameters:
-            parameter_id.append(unicode(parameter.id))
+            parameter_index.append(parameter.index)
             
-    elif type(parameter_id) in [str, unicode]:
-        parameter_id = [parameter_id]
-        
-        
+    elif type(parameter_index) in [str, unicode]:
+        parameter_index = [parameter_index]
+            
     parameter_map = {}
         
-    for pid in parameter_id:
+    for pid in parameter_index:
         
-        parameter = db().get(dataset.sequence.Parameter, uuid(pid))
-
-        if parameter is None:
-            raise TypeError("parameter %s is not a valid parameter id" % pid)
-        
-        if parameter.sequence is not sequence:
-            raise TypeError("parameter %s is not a part of current dataset" % pid)
+        parameter = db().find(dataset.sequence.Parameter, 
+                dataset.sequence.Parameter.index == pid, 
+                dataset.sequence.Parameter.sequence == sequence)
             
         parameter_map[pid] = parameter
         
@@ -198,7 +186,7 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
         
     join = "\nLEFT JOIN dataset_sequence_point as %(rename)s ON \n" + \
            "  %(rename)s.index_id = dataset_sequence_index.id AND \n" + \
-           "  %(rename)s.parameter_id = '%(id)s'"
+           "  %(rename)s.parameter_index = %(id)s"
     
     point_column = "\n  %(table)s.value, %(table)s.uncertainty_value"                   
     point_table = "point_%(index)d"
@@ -213,10 +201,10 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
     if limit_max:
         limit += "AND dataset_sequence_index.location < %f\n" % limit_max    
             
-    for index, parameter in enumerate(parameter_id):
+    for index, parameter in enumerate(parameter_index):
         table_name = point_table % {"index": index}
         add_columns.append(point_column % {"table": table_name})
-        add_join.append(join % {"rename": table_name, "id": unicode(parameter)})
+        add_join.append(join % {"rename": table_name, "index": parameter})
         
     add_columns = ", ".join(add_columns)
     add_join = " ".join(add_join)
@@ -238,10 +226,10 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
         "uncertainty": [],
         "sequence": sequence.serialize(),
         "rows": len(result),
-        "columns": len(parameter_id) + 1
+        "columns": len(parameter_index) + 1
     }
     
-    for parameter in parameter_id:
+    for parameter in parameter_index:
         obj["current_parameters"].append(parameter_map[parameter].serialize(1))
         obj["headers"].append(parameter_map[parameter].type.signature())
     
@@ -250,7 +238,7 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
 
     # masks for picking out data mapped to the SQL command
     # data at parameter columns
-    data_mask = range(2 if has_span else 1, (len(parameter_id)+1)*2, 2)
+    data_mask = range(2 if has_span else 1, (len(parameter_index)+1)*2, 2)
 
     # data at index column
     data_mask.insert(0, 0)
@@ -270,7 +258,7 @@ def get_data(dataset_id, parameter_id=None, limit_min=None, limit_max=None):
         
 
 @apimethod.auth
-def add_metadata(dataset_id, parameter_id=None, index_id=None, datapoint_id=None):
+def add_metadata(dataset_id, parameter_index=None, index_id=None, datapoint_id=None):
     sequence = sequence_from_dataset(dataset_id, user)
     check_access(user, sequence.dataset.study_id, "write")
 

@@ -9,10 +9,11 @@ from goldmine.db import generate_uuid
 class Parameter(Model):
 
     __storm_table__ = "dataset_sequence_parameter"
-    __export__ = ["id", "type", "uncertainty_value", "uncertainty_type", "storage", ("sequence", "sequence_id")]
+    __export__ = ["index", "type", "uncertainty_value", "uncertainty_type", "storage", ("sequence", "sequence_id")]
     __module__ = "goldmine.models.dataset.sequence"
+    __storm_primary__ = "index", "sequence_id"
 
-    id = UUID(primary=True, default_factory=generate_uuid)
+    index = Int()
     sequence_id = UUID()
     type_id = UUID()
     uncertainty_value = Float()

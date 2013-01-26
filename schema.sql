@@ -134,12 +134,13 @@ create table dataset_type (
 
 drop table if exists dataset_sequence_parameter;
 create table dataset_sequence_parameter (
-    id uuid primary key, 
+    index int not null, 
     sequence_id uuid not null, 
     type_id uuid,
     uncertainty_value float,
     uncertainty_type int,
-    storage int
+    storage int,
+    primary key(index, sequence_id)
 );
 
 drop table if exists dataset_sequence_index;
@@ -153,7 +154,7 @@ create table dataset_sequence_index (
 drop table if exists dataset_sequence_point;
 create table dataset_sequence_point (
     id uuid primary key, 
-    parameter_id uuid not null, 
+    parameter_index integer not null, 
     index_id uuid not null, 
     "value" float not null, 
     uncertainty_value float
@@ -167,7 +168,7 @@ create table dataset_sequence_metadata (
     id uuid primary key,
     metadata_id uuid not null,
     sequence_id uuid,
-    parameter_id uuid,
+    parameter_index int,
     index_id uuid,
     point_id uuid
 );

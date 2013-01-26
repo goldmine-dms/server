@@ -9,15 +9,15 @@ from goldmine.db import generate_uuid
 class Point(Model):
 
     __storm_table__ = "dataset_sequence_point"
-    __export__ = ["id", "value", "uncertainty_value", ("parameter", "parameter_id"), ("index", "index_id")]
+    __export__ = ["id", "value", "uncertainty_value", "parameter_index", ("index", "index_id")] #("parameter", "parameter_index"),
     __module__ = "goldmine.models.dataset.sequence"
 
     id = UUID(primary=True, default_factory=generate_uuid)
-    parameter_id = UUID()
+    parameter_index = UUID()
     index_id = UUID()
     value = Float()
     uncertainty_value = Float()
     
-    parameter = Reference(parameter_id, "dataset.sequence.Parameter.id")
+    #parameter = Reference(parameter_index, "dataset.sequence.Parameter.index")
     index = Reference(index_id, "dataset.sequence.Index.id")   
     
