@@ -13,7 +13,7 @@ class Point(Model):
     __module__ = "goldmine.models.dataset.sequence"
 
     id = UUID(primary=True, default_factory=generate_uuid)
-    parameter_index = UUID()
+    parameter_index = Int()
     index_id = UUID()
     value = Float()
     uncertainty_value = Float()

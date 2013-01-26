@@ -117,7 +117,7 @@ def add_data(dataset_id, index, parameter_index, value, uncertainty=None):
     idx.span = span
     idx.sequence = sequence
         
-    if type(parameter_index) in [str, unicode]:
+    if type(parameter_index) is int:
         parameter_index = [parameter_index]
         value = [value]
         uncertainty = [uncertainty]
