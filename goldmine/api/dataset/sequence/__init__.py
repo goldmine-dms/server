@@ -55,7 +55,7 @@ def add_parameter(dataset_id, type_id, uncertainty_value=None, uncertainty_type=
     type = not_empty(db().get(dataset.Type, type_id))
     
     param = dataset.sequence.Parameter()
-    param.index = len(sequence.parameters) + 1
+    param.index = len(list(sequence.parameters)) + 1
     param.type = type
     param.sequence = sequence
     param.storage = storage
