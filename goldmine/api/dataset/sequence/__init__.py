@@ -172,7 +172,10 @@ def get_data(dataset_id, parameter_index=None, limit_min=None, limit_max=None):
         
         parameter = db().find(dataset.sequence.Parameter, 
                 dataset.sequence.Parameter.index == pid, 
-                dataset.sequence.Parameter.sequence == sequence)
+                dataset.sequence.Parameter.sequence == sequence).one()
+
+        if parameter is None:
+            raise TypeError("Parameter index was not found in dataset")
             
         parameter_map[pid] = parameter
         
