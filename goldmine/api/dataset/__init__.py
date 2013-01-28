@@ -61,8 +61,8 @@ def purge(dataset_id):
 
 
     if ds.closed is None:
+        resolver.get("dataset.%s.purge" % ds.type, user)(dataset_id)
         db().remove(ds)
-        #FIXME: cascade
     else:
         raise Exception("Cannot delete closed datasets")
         
@@ -83,6 +83,7 @@ def do_fork(from_dataset, to_dataset, user, fork_type="derived"):
     lineage.fork_type = fork_type
     return db().add(lineage)
 
+#@apimethod.internal
 def create(type, study, description, dataset_forked_from=None, fork_type="derived"):
 
     check_access(user, study.id, "write")

@@ -89,10 +89,10 @@ class apimethod:
             self.documentation = method.__doc__
             
             
-def rs_to_list(rs):
+def rs_to_list(rs, nestedness=1):
     l = []
     for obj in rs:
-        stdobj = obj.__serialize__(nestedness=1)
+        stdobj = obj.__serialize__(nestedness=nestedness)
         l.append(stdobj)
     return l
 

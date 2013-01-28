@@ -45,7 +45,7 @@ def all(owned_by_user=False):
         for study in rs:
             if check_access(user, study.id, "read", throw=False):
                 result.append(study)
-        return rs_to_list(result)
+        return rs_to_list(result, 0)
         
     
 @apimethod.auth

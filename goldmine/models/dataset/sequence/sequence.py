@@ -21,6 +21,7 @@ class Sequence(Model):
 
     dataset = Reference(dataset_id, "dataset.Dataset.id")
     parameters = ReferenceSet(id, "dataset.sequence.Parameter.sequence_id")
+    indicies = ReferenceSet(id, "dataset.sequence.Index.sequence_id")
     index_type = Reference(index_type_id, "dataset.Type.id")
 
     

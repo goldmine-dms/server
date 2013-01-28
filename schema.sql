@@ -160,7 +160,7 @@ create table dataset_sequence_point (
     uncertainty_value float
 );
 
-create index dataset_sequence_point_parameter on dataset_sequence_point(parameter_id);
+create index dataset_sequence_point_parameter on dataset_sequence_point(parameter_index);
 create index dataset_sequence_point_index on dataset_sequence_point(index_id);
 
 drop table if exists dataset_sequence_metadata;
