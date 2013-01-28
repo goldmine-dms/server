@@ -4,6 +4,7 @@
 import os
 import string
 import datetime
+import codecs
 
 from goldmine import *
 from goldmine.db import db
@@ -19,7 +20,7 @@ def get(filename):
     directory = get_user_dir(user)
     
     try:
-        return file(directory + valid_filename(filename), 'rb').read()
+        return file(directory + valid_filename(filename), 'r').read()
     except Exception, e:
         raise TypeError(e.strerror)
 
@@ -33,7 +34,7 @@ def pull(filename):
     directory = get_user_dir(user)
     
     try:
-        data = file(directory + valid_filename(filename), 'rb').read()
+        data = file(directory + valid_filename(filename), 'r').read()
         os.unlink(directory + valid_filename(filename))
         return data
     except Exception, e:
@@ -110,7 +111,7 @@ def create(data, filename):
         # only valid filenames
         filename[idx] = valid_filename(filename[idx])
           
-        f = file(directory + filename[idx], "wb")
+        f = codecs.open(directory + filename[idx], "w", "utf-8")
         f.write(data_to_write)
         f.close()
         
